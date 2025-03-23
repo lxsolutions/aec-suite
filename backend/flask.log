@@ -1,0 +1,16 @@
+2025-03-23 16:22:58,054 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-03-23 16:22:58,055 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-03-23 16:22:58,055 - apscheduler.scheduler - INFO - Added job "run_all_scrapers" to job store "default"
+2025-03-23 16:22:58,056 - apscheduler.scheduler - INFO - Added job "run_all_scrapers" to job store "default"
+2025-03-23 16:22:58,056 - apscheduler.scheduler - INFO - Scheduler started
+2025-03-23 16:22:58,056 - app - INFO - Scheduler started
+ * Serving Flask app 'app'
+ * Debug mode: off
+2025-03-23 16:22:58,057 - apscheduler.executors.default - INFO - Running job "run_all_scrapers (trigger: date[2025-03-23 16:22:58 UTC], next run at: 2025-03-23 16:22:58 UTC)" (scheduled at 2025-03-23 16:22:58.055119+00:00)
+2025-03-23 16:22:58,058 - apscheduler.scheduler - INFO - Removed job a89ef73aaf9647b68358bcc1925d21ff
+2025-03-23 16:22:58,059 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:50560
+ * Running on http://172.17.0.3:50560
+2025-03-23 16:22:58,060 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-23 16:22:58,066 - scrapers - INFO - Running scraper for ThailandPropertyScraper

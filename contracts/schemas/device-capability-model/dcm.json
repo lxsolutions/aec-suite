@@ -1,0 +1,190 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Device Capability Model (DCM)",
+  "description": "Schema defining the capabilities of a device in the Rover Operations platform",
+  "type": "object",
+  "required": ["device_id", "manufacturer", "model", "capabilities"],
+  "properties": {
+    "device_id": {
+      "description": "Unique identifier for this device",
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{3,64}$"
+    },
+    "manufacturer": {
+      "description": "Manufacturer of the device",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "model": {
+      "description": "Model name or number",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "serial_number": {
+      "description": "Serial number of the device (optional)",
+      "type": "string"
+    },
+    "firmware_version": {
+      "description": "Current firmware version",
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9.+-]{1,20}$"
+    },
+    "capabilities": {
+      "description": "Capabilities supported by this device",
+      "type": "object",
+      "required": ["drive", "sensors"],
+      "properties": {
+        "drive": {
+          "description": "Drive control capabilities",
+          "type": "object",
+          "properties": {
+            "setSpeed": {
+              "description": "Supports setting vehicle speed",
+              "type": "boolean"
+            },
+            "setSteer": {
+              "description": "Supports steering angle control",
+              "type": "boolean"
+            },
+            "maxSpeedMps": {
+              "description": "Maximum speed in meters per second (if known)",
+              "type": ["number", "null"],
+              "minimum": 0.1,
+              "maximum": 20
+            }
+          },
+          "additionalProperties": false
+        },
+        "sensors": {
+          "description": "Sensor capabilities",
+          "type": "object",
+          "properties": {
+            "gps": {
+              "description": "GPS sensor availability",
+              "type": "boolean"
+            },
+            "imu": {
+              "description": "IMU (Inertial Measurement Unit) availability",
+              "type": "boolean"
+            },
+            "camera": {
+              "description": "Video camera availability",
+              "type": ["object", "null"],
+              "properties": {
+                "resolution": {
+                  "description": "Camera resolution (width x height)",
+                  "type": "string",
+                  "pattern": "^\\d+x\\d+$"
+                },
+                "fps": {
+                  "description": "Frames per second",
+                  "type": ["integer", "null"],
+                  "minimum": 1,
+                  "maximum": 60
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": true
+        },
+        "safety": {
+          "description": "Safety features supported",
+          "type": "object",
+          "properties": {
+            "eStop": {
+              "description": "Supports emergency stop functionality",
+              "type": "boolean"
+            },
+            "deadManSwitch": {
+              "description": "Requires periodic keepalive signals for control",
+              "type": ["boolean", "null"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "geofence": {
+          "description": "Geofencing capabilities",
+          "type": "object",
+          "properties": {
+            "supportsPolygons": {
+              "description": "Can enforce geofences defined as polygons",
+              "type": ["boolean", "null"]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    },
+    "metadata": {
+      "description": "Additional metadata about the device (optional)",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "device_id": "hello-tractor-01",
+      "manufacturer": "Hello Tractor Inc.",
+      "model": "HT-X200",
+      "serial_number": "SN123456789",
+      "firmware_version": "1.2.3",
+      "capabilities": {
+        "drive": {
+          "setSpeed": true,
+          "setSteer": true,
+          "maxSpeedMps": 5
+        },
+        "sensors": {
+          "gps": true,
+          "imu": true,
+          "camera": {
+            "resolution": "1280x720",
+            "fps": 30
+          }
+        },
+        "safety": {
+          "eStop": true,
+          "deadManSwitch": true
+        },
+        "geofence": {
+          "supportsPolygons": true
+        }
+      },
+      "metadata": {
+        "purchase_date": "2023-05-15",
+        "warranty_expiry": "2024-05-15"
+      }
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+

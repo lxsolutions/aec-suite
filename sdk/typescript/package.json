@@ -1,0 +1,47 @@
+
+
+{
+  "name": "@rover-operations/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Rover Operations tele-operation platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest --runInBand"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/rover-operations.git"
+  },
+  "keywords": [
+    "teleoperation",
+    "robotics",
+    "agriculture",
+    "automation",
+    "grpc",
+    "webrtc"
+  ],
+  "author": "Your Name",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/rover-operations/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/rover-operations#readme",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.6.0",
+    "@grpc/proto-loader": "^0.7.2",
+    "protobufjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.3",
+    "@types/jest": "^29.2.4",
+    "eslint": "^8.36.0"
+  },
+  "peerDependencies": {
+    "next": "^13.0.0 || ^14.0.0"
+  }
+}
+

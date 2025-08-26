@@ -1,0 +1,43 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Codeowners for Rover Operations
+
+## Core Team
+* @YOUR_USERNAME - Overall project maintainer
+
+## Service Owners
+* @YOUR_USERNAME - Services: control-broker, signaling, telemetry, policy-engine, billing, replay, api-gateway
+* @YOUR_USERNAME - Edge components: agent, hello-tractor-driver
+* @YOUR_USERNAME - Web console: operator interface and UI components
+* @YOUR_USERNAME - SDKs: Python and TypeScript packages
+
+## Documentation Owners
+* @YOUR_USERNAME - Architecture documentation
+* @YOUR_USERNAME - Safety documentation
+* @YOUR_USERNAME - Operator training materials
+
+## Infrastructure Owners
+* @YOUR_USERNAME - Docker configuration and CI/CD pipelines
+
+
+
+
+
+
+
+
+
+
+
+

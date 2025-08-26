@@ -1,0 +1,14 @@
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+**/build/
+**/.turbo/
+**/.cache/
+**/coverage/
+*.log
+.env
+.env.*
+.DS_Store
+.idea/
+.vscode/

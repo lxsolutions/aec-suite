@@ -8,9 +8,22 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
+interface AgentRun {
+  id: string;
+  agent_type: string;
+  status: string;
+  created_at: string;
+}
+
+interface ProjectData {
+  name: string;
+  description?: string;
+  agent_runs?: AgentRun[];
+}
+
 const ProjectView: React.FC = () => {
   const { projectId } = useParams();
-  const [projectData, setProjectData] = useState(null);
+  const [projectData, setProjectData] = useState<ProjectData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

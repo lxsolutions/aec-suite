@@ -9,10 +9,10 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from ..dependencies import call_service
-from ...core.config import settings
-from ...core.security import get_current_user
+from core.config import settings
+from core.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(prefix="/v1/projects", tags=["projects"])
 
 class ProjectCreate(BaseModel):
     name: str

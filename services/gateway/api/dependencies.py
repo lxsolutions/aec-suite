@@ -7,7 +7,7 @@ import httpx
 from fastapi import HTTPException, status
 from typing import Dict, Any
 
-from ..core.config import settings
+from core.config import settings
 
 async def get_service_health() -> Dict[str, Dict[str, Any]]:
     """Check health of all backend services"""

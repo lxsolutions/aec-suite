@@ -20,10 +20,10 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-from .core.config import settings
-from .core.security import get_current_user
-from .api.v1 import projects, rfps, estimates, schedules, erp, health
-from .core.events import nats_client
+from core.config import settings
+from core.security import get_current_user
+from api.v1 import projects, rfps, estimates, health
+from core.events import nats_client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,9 +35,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     logger.info("Starting AEC Gateway service")
     
-    # Initialize NATS connection
-    await nats_client.connect()
-    logger.info("NATS client connected")
+    # Initialize NATS connection with timeout (optional for now)
+    try:
+        import asyncio
+        await asyncio.wait_for(nats_client.connect(), timeout=5.0)
+        logger.info("NATS client connected")
+    except asyncio.TimeoutError:
+        logger.warning("NATS connection timed out after 5 seconds. Continuing without NATS.")
+    except Exception as e:
+        logger.warning(f"NATS connection failed: {e}. Continuing without NATS.")
     
     yield
     
@@ -95,12 +101,12 @@ def create_app() -> FastAPI:
         FastAPIInstrumentor.instrument_app(app)
     
     # Include routers
-    app.include_router(health.router, prefix="/healthz", tags=["health"])
-    app.include_router(projects.router, prefix="/v1/projects", tags=["projects"])
-    app.include_router(rfps.router, prefix="/v1/rfps", tags=["rfps"])
-    app.include_router(estimates.router, prefix="/v1/estimates", tags=["estimates"])
-    app.include_router(schedules.router, prefix="/v1/schedules", tags=["schedules"])
-    app.include_router(erp.router, prefix="/v1/erp", tags=["erp"])
+    app.include_router(health.router, tags=["health"])
+    app.include_router(projects.router, tags=["projects"])
+    app.include_router(rfps.router, tags=["rfps"])
+    app.include_router(estimates.router, tags=["estimates"])
+    # app.include_router(schedules.router, prefix="/v1/schedules", tags=["schedules"])
+    # app.include_router(erp.router, prefix="/v1/erp", tags=["erp"])
     
     return app
 

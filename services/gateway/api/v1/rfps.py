@@ -10,11 +10,11 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from ..dependencies import call_service
-from ...core.config import settings
-from ...core.security import get_current_user
-from ...core.events import nats_client
+from core.config import settings
+from core.security import get_current_user
+from core.events import nats_client
 
-router = APIRouter()
+router = APIRouter(prefix="/v1/rfps", tags=["rfps"])
 
 class RFPCreate(BaseModel):
     project_id: str

@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from ..dependencies import get_service_health
 
-router = APIRouter()
+router = APIRouter(prefix="/v1/health", tags=["health"])
 
 @router.get("")
 async def health_check():

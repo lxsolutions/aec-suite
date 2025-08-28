@@ -65,3 +65,16 @@ help:
 @echo "  dev       - Start development environment"
 @echo "  clean     - Clean build artifacts and dependencies"
 @echo "  help      - Show this help message"
+
+# Gateway specific targets
+gateway.run:
+@echo "Starting Gateway service..."
+cd services/gateway && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8080
+
+test.gateway:
+@echo "Running Gateway tests..."
+cd services/gateway && uv run pytest --tb=short -v
+
+gateway.install:
+@echo "Installing Gateway dependencies..."
+cd services/gateway && uv pip install -e .

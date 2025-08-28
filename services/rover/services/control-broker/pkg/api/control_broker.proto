@@ -1,0 +1,120 @@
+
+
+
+
+
+
+syntax = "proto3";
+
+package rover.controlbroker;
+
+import "google/protobuf/timestamp.proto";
+import "../contracts/proto/control.proto";
+
+// Control Broker service definition
+service ControlBroker {
+    // Initialize a new control session for an operator
+    rpc InitializeSession(InitializeSessionRequest) returns (InitializeSessionResponse);
+
+    // Terminate an active control session
+    rpc TerminateSession(TerminateSessionRequest) returns (TerminateSessionResponse);
+
+    // Send a command from operator to device via the broker
+    rpc SendCommand(SendCommandRequest) returns (SendCommandResponse);
+
+    // Receive status updates from edge agents/devices
+    rpc ReceiveStatusUpdate(ReceiveStatusUpdateRequest) returns (ReceiveStatusUpdateResponse);
+
+    // Handle emergency stop commands with high priority
+    rpc HandleEStop(HandleEStopRequest) returns (HandleEStopResponse);
+}
+
+// Request to initialize a new control session
+message InitializeSessionRequest {
+    string operator_id = 1; // Operator's unique identifier
+    string device_id = 2;   // Target device ID
+    string auth_token = 3;  // JWT or other authentication token
+
+    bool is_training_session = 4; // If this is a training session (lower permissions)
+}
+
+// Response from InitializeSession
+message InitializeSessionResponse {
+    bool success = 1;
+    string error_message = 2;
+
+    string session_id = 3; // Unique session identifier if successful
+    google.protobuf.Timestamp start_time = 4;
+    int32 timeout_seconds = 5; // Session duration before auto-termination
+
+    repeated string policies_applied = 6; // List of policy IDs applied to this session
+}
+
+// Request to terminate an active control session
+message TerminateSessionRequest {
+    string session_id = 1;
+
+    bool force_terminate = 2; // Force termination even if dead-man switch is active
+}
+
+// Response from TerminateSession
+message TerminateSessionResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+// Request to send a command through the broker
+message SendCommandRequest {
+    string session_id = 1;
+
+    rover.control.Command command = 2; // The actual control command
+
+    google.protobuf.Timestamp timestamp = 3; // When the command was issued
+}
+
+// Response from SendCommand
+message SendCommandResponse {
+    bool success = 1;
+    string error_message = 2;
+
+    string command_id = 3; // Unique identifier for this command instance
+    bool policy_violation = 4; // If command was blocked by policies
+
+    repeated string violation_details = 5; // Details about any policy violations
+}
+
+// Request to receive status updates from devices
+message ReceiveStatusUpdateRequest {
+    rover.control.DeviceStatusUpdate update = 1;
+}
+
+// Response for status update receipt
+message ReceiveStatusUpdateResponse {
+    bool success = 1;
+    string error_message = 2;
+
+    google.protobuf.Timestamp received_time = 3; // When broker received the update
+}
+
+// Emergency stop request handling
+message HandleEStopRequest {
+    string session_id = 1; // Session ID (if known)
+    string device_id = 2;  // Device ID (if session not available)
+
+    bool global_estop = 3; // If this is a system-wide E-stop activation
+
+    string source_system = 4; // System originating the E-stop command
+}
+
+// Response from HandleEStop
+message HandleEStopResponse {
+    bool success = 1;
+    string error_message = 2;
+
+    repeated string devices_affected = 3; // List of device IDs affected by this E-stop
+
+    google.protobuf.Timestamp estop_time = 4; // When the E-stop was processed
+}
+
+
+

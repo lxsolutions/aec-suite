@@ -1,0 +1,166 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+syntax = "proto3";
+
+package telemetry;
+
+option go_package = "github.com/YOUR_USERNAME/rover-operations/contracts/proto/telemetry";
+
+// Common message types
+message GeoPoint {
+  double latitude = 1; // Degrees (WGS84)
+  double longitude = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+
+  static Timestamp now() {
+    return Timestamp{
+      seconds: time.Now().Unix(),
+      nanos: int32(time.Now().Nanosecond()),
+    };
+  }
+}
+
+// Telemetry data types
+enum SensorType {
+  UNKNOWN = 0;
+  GPS = 1;            // Global Positioning System
+  IMU = 2;            // Inertial Measurement Unit (accelerometer, gyroscope)
+  ENGINE = 3;         // Engine status and metrics
+  BATTERY = 4;        // Battery level and health
+  CONTROL_INPUTS = 5; // Operator control inputs
+}
+
+message TelemetryEvent {
+  string device_id = 1;
+  SensorType sensor_type = 2;
+
+  oneof data_payload {
+    GpsData gps_data = 3;
+    ImuData imu_data = 4;
+    EngineData engine_data = 5;
+    BatteryData battery_data = 6;
+    ControlInputs control_inputs = 7;
+    CustomSensorData custom_sensor = 8;
+  }
+
+  Timestamp timestamp = 9;   // When the data was recorded
+}
+
+message GpsData {
+  GeoPoint position = 1;
+  float altitude_meters = 2;
+
+  int satellites_in_view = 3;
+  float horizontal_accuracy_meters = 4;
+}
+
+message ImuData {
+  float acceleration_x = 1;   // m/s² (vehicle frame)
+  float acceleration_y = 2;
+  float acceleration_z = 3;
+
+  float angular_rate_x = 4;    // rad/s
+  float angular_rate_y = 5;
+  float angular_rate_z = 6;
+}
+
+message EngineData {
+  bool engine_running = 1;
+
+  float rpm = 2;               // Revolutions per minute
+  float fuel_level_percent = 3;
+  float oil_pressure_kpa = 4;
+  float coolant_temperature_celsius = 5;
+}
+
+message BatteryData {
+  float voltage = 1;           // Volts
+  float current = 2;           // Amperes (positive when charging, negative when discharging)
+  float temperature_celsius = 3;
+
+  int battery_percentage_remaining = 4;
+}
+
+message ControlInputs {
+  string operator_id = 1;
+
+  float throttle_position_percent = 2;   // -100% to +100%
+  float steer_angle_degrees = 3;         // -90 to +90 degrees
+  bool e_stop_active = 4;
+}
+
+message CustomSensorData {
+  string sensor_name = 1;
+  bytes raw_data = 2;
+
+  map<string, string> metadata = 3;      // Additional context about the data
+}
+
+// Telemetry service definitions
+service TelemetryService {
+  rpc IngestEvent(TelemetryEvent) returns (IngestResponse);
+
+  rpc QueryEvents(QueryRequest) returns (QueryResponse);
+}
+
+message IngestResponse {
+  bool success = 1;
+  string message = 2;
+
+  oneof result_info {
+    empty.Empty success_empty = 3;
+    ErrorDetails error_details = 4;
+  }
+}
+
+message QueryRequest {
+  string device_id = 1;          // Filter by specific device
+  SensorType sensor_type = 2;   // Filter by sensor type
+
+  Timestamp start_time = 3;      // Start of time range (inclusive)
+  Timestamp end_time = 4;        // End of time range (exclusive)
+
+  int max_results = 5;           // Maximum number of results to return
+}
+
+message QueryResponse {
+  repeated TelemetryEvent events = 1;
+  bool has_more_data = 2;
+
+  string continuation_token = 3;   // For pagination, if more data is available
+}
+
+// Error details for telemetry operations
+message ErrorDetails {
+  string error_code = 1;
+  string description = 2;
+}
+
+import "google/protobuf/empty.proto";
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package aec;
+
+message WorkflowEvent {
+  string id = 1;
+  string type = 2;
+  string workflow_id = 3;
+  string status = 4;
+  int64 timestamp = 5;
+  map<string, string> metadata = 6;
+}
+
+message RoverStatus {
+  string rover_id = 1;
+  string status = 2;
+  Location location = 3;
+  repeated string operations = 4;
+  int64 last_update = 5;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+  double altitude = 3;
+}
+
+message ERPIntegrationEvent {
+  string system = 1;
+  string operation = 2;
+  string entity_type = 3;
+  string entity_id = 4;
+  string status = 5;
+  int64 timestamp = 6;
+}
+
+service AECEventService {
+  rpc PublishWorkflowEvent(WorkflowEvent) returns (Acknowledge);
+  rpc PublishRoverStatus(RoverStatus) returns (Acknowledge);
+  rpc PublishERPEvent(ERPIntegrationEvent) returns (Acknowledge);
+}
+
+message Acknowledge {
+  bool success = 1;
+  string message = 2;
+}

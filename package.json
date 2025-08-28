@@ -1,0 +1,39 @@
+
+{
+  "name": "aec-suite",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AEC Suite Monorepo - Unified platform for AEC orchestration, rover operations, and ERP integration",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "type-check": "turbo run type-check"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "keywords": [
+    "aec",
+    "monorepo",
+    "orchestration",
+    "rover",
+    "erp",
+    "typescript"
+  ],
+  "author": "LX Solutions",
+  "license": "MIT"
+}

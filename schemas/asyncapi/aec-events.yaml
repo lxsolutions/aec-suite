@@ -1,0 +1,133 @@
+asyncapi: 3.0.0
+info:
+  title: AEC Suite Event API
+  version: 1.0.0
+  description: Event-driven architecture for AEC Suite services
+
+servers:
+  development:
+    url: nats://localhost:4222
+    protocol: nats
+    description: Development NATS server
+
+channels:
+  aec.workflow.events:
+    address: aec.workflow.events
+    messages:
+      workflowCreated:
+        $ref: "#/components/messages/WorkflowEvent"
+      workflowUpdated:
+        $ref: "#/components/messages/WorkflowEvent"
+      workflowCompleted:
+        $ref: "#/components/messages/WorkflowEvent"
+
+  aec.rover.status:
+    address: aec.rover.status
+    messages:
+      roverStatusUpdate:
+        $ref: "#/components/messages/RoverStatus"
+
+  aec.erp.integration:
+    address: aec.erp.integration
+    messages:
+      erpSyncEvent:
+        $ref: "#/components/messages/ERPIntegrationEvent"
+
+components:
+  messages:
+    WorkflowEvent:
+      name: WorkflowEvent
+      title: Workflow Event
+      summary: Event emitted for workflow state changes
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/WorkflowEvent"
+
+    RoverStatus:
+      name: RoverStatus
+      title: Rover Status Update
+      summary: Current status and location of a rover
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/RoverStatus"
+
+    ERPIntegrationEvent:
+      name: ERPIntegrationEvent
+      title: ERP Integration Event
+      summary: Event for ERP system integrations
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/ERPIntegrationEvent"
+
+  schemas:
+    WorkflowEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [created, updated, completed, failed]
+        workflowId:
+          type: string
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+
+    RoverStatus:
+      type: object
+      properties:
+        roverId:
+          type: string
+        status:
+          type: string
+          enum: [idle, moving, working, charging, error]
+        location:
+          $ref: "#/components/schemas/Location"
+        operations:
+          type: array
+          items:
+            type: string
+        lastUpdate:
+          type: string
+          format: date-time
+
+    Location:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: float
+        longitude:
+          type: number
+          format: float
+        altitude:
+          type: number
+          format: float
+
+    ERPIntegrationEvent:
+      type: object
+      properties:
+        system:
+          type: string
+          enum: [acumatica, odoo, sap]
+        operation:
+          type: string
+          enum: [create, update, delete, sync]
+        entityType:
+          type: string
+          enum: [customer, order, invoice, product]
+        entityId:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        timestamp:
+          type: string
+          format: date-time

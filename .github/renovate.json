@@ -1,0 +1,47 @@
+
+
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["*"],
+      "automerge": false,
+      "major": {
+        "automerge": false
+      }
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["^@types/"],
+      "groupName": "types packages"
+    },
+    {
+      "matchPackagePatterns": ["eslint", "prettier"],
+      "groupName": "lint packages"
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/vendor/**",
+    "**/dist/**",
+    "**/build/**"
+  ],
+  "platformAutomerge": true,
+  "rebaseWhen": "behind-base-branch",
+  "schedule": [
+    "before 3am on Monday"
+  ]
+}
+

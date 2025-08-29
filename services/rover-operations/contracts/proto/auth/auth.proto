@@ -1,0 +1,104 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/YOUR_USERNAME/rover-operations/contracts/proto/auth";
+
+// Authentication and authorization messages
+enum Role {
+  UNKNOWN = 0;
+  ADMIN = 1;          // Full system access
+  SUPERVISOR = 2;     // Can manage operators and view all data
+  OPERATOR = 3;       // Can control devices but not manage users
+  TRAINEE = 4;        // Limited controls for training purposes
+}
+
+message User {
+  string user_id = 1;
+  string username = 2;
+
+  Role role = 3;
+
+  bool is_active = 4;
+  bool requires_two_factor_auth = 5;
+
+  repeated string allowed_device_types = 6;   // Specific device types this user can control
+
+  Timestamp created_at = 7;
+}
+
+message AuthToken {
+  string token = 1;           // JWT or other auth token
+  int expires_in_seconds = 2; // Time until token expiration
+
+  User user_info = 3;
+
+  repeated string scopes = 4;   // Authorization scopes (e.g., "read:telemetry", "write:controls")
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+
+  bool remember_me = 3;        // Persistent session flag
+}
+
+message LoginResponse {
+  AuthToken auth_token = 1;
+  User user_info = 2;
+}
+
+// Authentication service definitions
+service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+
+  rpc GetUser(string user_id) returns (User);
+}
+
+message ValidateTokenRequest {
+  string token = 1;           // Authentication token to validate
+}
+
+message ValidateTokenResponse {
+  bool is_valid = 1;
+  User user_info = 2;
+
+  oneof result_info {
+    empty.Empty success_empty = 3;
+    ValidationError error_details = 4;
+  }
+}
+
+// Error details for authentication operations
+message ValidationError {
+  string error_code = 1;      // e.g., "INVALID_TOKEN", "EXPIRED_TOKEN"
+  string description = 2;
+}
+
+import "google/protobuf/empty.proto";
+
+
+
+
+
+
+
+
+
+
+
+

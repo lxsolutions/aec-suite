@@ -1,0 +1,114 @@
+
+
+
+
+
+
+
+
+
+
+
+
+syntax = "proto3";
+
+package drive;
+
+option go_package = "github.com/YOUR_USERNAME/rover-operations/contracts/proto/drive";
+
+// Common message types
+message GeoPoint {
+  double latitude = 1; // Degrees (WGS84)
+  double longitude = 2;
+}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+
+  // Helper function to create current timestamp
+  static Timestamp now() {
+    return Timestamp{
+      seconds: time.Now().Unix(),
+      nanos: int32(time.Now().Nanosecond()),
+    };
+  }
+}
+
+// Drive commands
+message DriveCommand {
+  float speed = 1;          // m/s (positive for forward, negative for reverse)
+  float steer_angle = 2;   // degrees (-90 to +90)
+}
+
+message SafetyCommand {
+  bool e_stop_activate = 1;
+  bool e_stop_release = 2;
+
+  string reason = 3;       // Optional: description of why E-stop was activated
+}
+
+// Status and telemetry messages
+enum Status {
+  UNKNOWN = 0;
+  OK = 1;
+  ESTOP_ACTIVE = 2;
+  COMMAND_BLOCKED = 3;
+}
+
+message CommandResponse {
+  Status status = 1;
+
+  oneof response_data {
+    DriveStatus drive_status = 2;
+    SafetyStatus safety_status = 3;
+    string error_message = 4;
+  }
+}
+
+message DriveStatus {
+  float current_speed = 1;      // m/s
+  float steer_angle = 2;        // degrees (-90 to +90)
+  GeoPoint position = 3;
+  float heading = 4;            // degrees (0 = north, 90 = east)
+
+  Timestamp timestamp = 5;
+}
+
+message SafetyStatus {
+  bool e_stop_active = 1;
+  bool emergency_mode = 2;
+
+  string last_estop_reason = 3;
+  Timestamp estop_timestamp = 4;
+}
+
+// Device status updates (telemetry)
+message DeviceStatusUpdate {
+  GeoPoint position = 1;        // Current GPS coordinates
+  float current_speed = 2;      // m/s
+  float heading = 3;            // degrees
+
+  SafetyStatus safety_status = 4;
+
+  Timestamp timestamp = 5;
+}
+
+// Service definitions for Hello Tractor driver
+service HelloTractor {
+  rpc Drive(DriveCommand) returns (CommandResponse);
+
+  rpc Safety(SafetyCommand) returns (CommandResponse);
+  rpc GetStatus(empty.Empty) returns (DeviceStatusUpdate);
+}
+
+
+
+
+
+
+
+
+
+
+

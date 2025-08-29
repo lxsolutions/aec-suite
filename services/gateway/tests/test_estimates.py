@@ -13,7 +13,7 @@ def test_health_check():
 def test_create_project():
     """Test project creation"""
     # Add authorization header for authenticated endpoints
-    headers = {"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1NjQyNDQzM30.XUN2_8RDJlQ2g2LBAFNPogvzEAN18JFUtrVIh-PXqso"}
+    headers = {"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1NjQyNzQwMH0.XHfCG5ZrKycPhDndWT2oScG1vsfRYQYME3iOEPBpa5Y"}
     project_data = {
         "name": "Test Project",
         "client_id": "test-client-123",

@@ -133,3 +133,6 @@ This monorepo consolidates the following repositories:
 Full migration details: [MIGRATION_REPORT.md](MIGRATION_REPORT.md)
 
 
+
+## License Notices
+- [buildforge-cloud Apache-2.0 LICENSE](services/buildforge-cloud/LICENSE)

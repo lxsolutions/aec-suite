@@ -1,0 +1,50 @@
+
+
+
+
+
+
+
+# Sample Request for Proposal (RFP)
+
+## Project Overview
+The project involves the construction of a new 10-story office building in downtown area. The building should be designed to meet LEED Platinum certification standards and include modern amenities such as green roofs, solar panels, and smart building technology.
+
+## Scope of Work
+
+### Phase 1: Design & Planning (3 months)
+- Architectural design
+- Structural engineering
+- MEP (Mechanical, Electrical, Plumbing) engineering
+- Sustainability analysis
+- Permitting
+
+### Phase 2: Construction (18 months)
+- Site preparation
+- Foundation work
+- Structural construction
+- Interior finishes
+- Exterior cladding
+- Landscaping
+
+## Key Requirements
+1. Building must achieve LEED Platinum certification
+2. Minimum of 30% energy efficiency improvement over baseline
+3. Use of recycled materials in at least 25% of construction
+4. Smart building technology integration (IoT, automation)
+5. Green roof covering at least 50% of available space
+
+## Budget Estimate
+- Design & Planning: $1,500,000 - $2,000,000
+- Construction: $30,000,000 - $40,000,000
+- Contingency (10%): $3,600,000
+
+## Submission Requirements
+Bidders must submit:
+1. Detailed cost breakdown by phase
+2. Sustainability plan with LEED certification strategy
+3. Proposed construction schedule (Gantt chart)
+4. Compliance documentation for ISO 9001 and ISO 14001 standards
+
+
+

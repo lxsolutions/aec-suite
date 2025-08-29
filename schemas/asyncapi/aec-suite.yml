@@ -1,0 +1,312 @@
+asyncapi: 2.6.0
+info:
+  title: AEC Suite Event Schema
+  version: 1.0.0
+  description: Event contracts for AEC Suite platform
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  nats:
+    url: nats://localhost:4222
+    protocol: nats
+    description: NATS messaging server
+
+channels:
+  project.created:
+    publish:
+      operationId: publishProjectCreated
+      summary: Published when a new project is created
+      message:
+        $ref: '#/components/messages/ProjectCreated'
+    subscribe:
+      operationId: subscribeProjectCreated
+      summary: Subscribe to project creation events
+      message:
+        $ref: '#/components/messages/ProjectCreated'
+
+  rfp.parsed:
+    publish:
+      operationId: publishRfpParsed
+      summary: Published when an RFP is successfully parsed
+      message:
+        $ref: '#/components/messages/RfpParsed'
+    subscribe:
+      operationId: subscribeRfpParsed
+      summary: Subscribe to RFP parsing events
+      message:
+        $ref: '#/components/messages/RfpParsed'
+
+  estimate.ready:
+    publish:
+      operationId: publishEstimateReady
+      summary: Published when an estimate is ready for review
+      message:
+        $ref: '#/components/messages/EstimateReady'
+    subscribe:
+      operationId: subscribeEstimateReady
+      summary: Subscribe to estimate ready events
+      message:
+        $ref: '#/components/messages/EstimateReady'
+
+  schedule.updated:
+    publish:
+      operationId: publishScheduleUpdated
+      summary: Published when a project schedule is updated
+      message:
+        $ref: '#/components/messages/ScheduleUpdated'
+    subscribe:
+      operationId: subscribeScheduleUpdated
+      summary: Subscribe to schedule update events
+      message:
+        $ref: '#/components/messages/ScheduleUpdated'
+
+  erp.sync.completed:
+    publish:
+      operationId: publishERPSyncCompleted
+      summary: Published when ERP synchronization is completed
+      message:
+        $ref: '#/components/messages/ERPSyncCompleted'
+    subscribe:
+      operationId: subscribeERPSyncCompleted
+      summary: Subscribe to ERP sync completion events
+      message:
+        $ref: '#/components/messages/ERPSyncCompleted'
+
+components:
+  messages:
+    ProjectCreated:
+      name: ProjectCreated
+      summary: Event emitted when a project is created
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ProjectCreatedEvent'
+
+    RfpParsed:
+      name: RfpParsed
+      summary: Event emitted when an RFP is parsed
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RfpParsedEvent'
+
+    EstimateReady:
+      name: EstimateReady
+      summary: Event emitted when an estimate is ready
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/EstimateReadyEvent'
+
+    ScheduleUpdated:
+      name: ScheduleUpdated
+      summary: Event emitted when a schedule is updated
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ScheduleUpdatedEvent'
+
+    ERPSyncCompleted:
+      name: ERPSyncCompleted
+      summary: Event emitted when ERP sync is completed
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ERPSyncCompletedEvent'
+
+  schemas:
+    ProjectCreatedEvent:
+      type: object
+      properties:
+        project:
+          $ref: '#/components/schemas/Project'
+
+    RfpParsedEvent:
+      type: object
+      properties:
+        rfp:
+          $ref: '#/components/schemas/Rfp'
+        parsedItems:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    EstimateReadyEvent:
+      type: object
+      properties:
+        estimate:
+          $ref: '#/components/schemas/Estimate'
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+
+    ScheduleUpdatedEvent:
+      type: object
+      properties:
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+
+    ERPSyncCompletedEvent:
+      type: object
+      properties:
+        estimateId:
+          type: string
+          format: uuid
+        erpId:
+          type: string
+        syncTimestamp:
+          type: string
+          format: date-time
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        clientId:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        budget:
+          type: number
+        status:
+          type: string
+          enum: [draft, active, completed, archived]
+        orgId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Rfp:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        originalFilename:
+          type: string
+        fileSize:
+          type: integer
+        mimeType:
+          type: string
+        status:
+          type: string
+          enum: [received, parsing, parsed, error]
+        parsedData:
+          type: object
+          additionalProperties: true
+        errorMessage:
+          type: string
+        orgId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Estimate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        rfpId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        status:
+          type: string
+          enum: [draft, pending, ready, approved, synced]
+        totalAmount:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EstimateItem'
+        notes:
+          type: string
+        orgId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EstimateItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        quantity:
+          type: number
+        unit:
+          type: string
+        unitCost:
+          type: number
+        totalCost:
+          type: number
+        category:
+          type: string
+        notes:
+          type: string
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        estimateId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [draft, in_progress, completed]
+        milestones:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        orgId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

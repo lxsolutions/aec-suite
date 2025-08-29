@@ -61,6 +61,68 @@ async def get_user():
     # This will use fastapi-users with JWT auth
     return {"user_id": "temp-user-id"}
 
+# RFP parsing endpoint
+@app.post("/parse-rfp")
+async def parse_rfp(file: UploadFile = File(...)):
+    """
+    Parse an RFP document and extract scope items
+    """
+    try:
+        # Read file content
+        content = await file.read()
+        
+        # Simple parsing logic - in production this would use NLP/ML
+        # For now, extract some basic information from filename and content
+        filename = file.filename
+        file_size = len(content)
+        
+        # Mock parsing results - extract some scope items
+        parsed_items = [
+            {
+                "item_code": "SITE01",
+                "description": "Site Preparation and Clearing",
+                "quantity": 1,
+                "unit": "ls",
+                "estimated_cost": 50000
+            },
+            {
+                "item_code": "FND01", 
+                "description": "Foundation Work",
+                "quantity": 1,
+                "unit": "ls", 
+                "estimated_cost": 150000
+            },
+            {
+                "item_code": "STR01",
+                "description": "Structural Steel Framing",
+                "quantity": 200,
+                "unit": "ton",
+                "estimated_cost": 2500
+            }
+        ]
+        
+        # Emit RFP parsed event (in production, this would use NATS)
+        rfp_data = {
+            "filename": filename,
+            "file_size": file_size,
+            "parsed_items": parsed_items,
+            "status": "parsed"
+        }
+        
+        # TODO: Integrate with NATS event system
+        # await events.publish_rfp_parsed(rfp_data)
+        
+        return {
+            "success": True,
+            "filename": filename,
+            "file_size": file_size,
+            "parsed_items": parsed_items,
+            "total_estimated_cost": sum(item["estimated_cost"] * item.get("quantity", 1) for item in parsed_items)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse RFP: {str(e)}")
+
 # Mock projects endpoints for testing gateway integration
 @app.get("/projects")
 async def list_projects():

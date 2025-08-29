@@ -82,6 +82,18 @@ jobs:
     - name: Type Check
       run: pnpm type-check
 
+    - name: Python Tests
+      run: |
+        cd services/gateway
+        uv run pytest tests/ -v --tb=short --junitxml=test-results.xml
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gateway-test-results
+        path: services/gateway/test-results.xml
+
   security:
     name: Security Scan
     runs-on: ubuntu-latest

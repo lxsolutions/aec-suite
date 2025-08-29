@@ -24,6 +24,11 @@ from core.config import settings
 from core.security import get_current_user
 from api.v1 import projects, rfps, estimates, health
 from core.events import nats_client
+from core.middleware.rate_limit import (
+    create_rate_limit_middleware, 
+    rate_limit_exceeded_handler,
+    limiter
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -95,6 +100,13 @@ def create_app() -> FastAPI:
         TrustedHostMiddleware,
         allowed_hosts=settings.ALLOWED_HOSTS,
     )
+    
+    # Rate limiting middleware
+    rate_limit_middleware = create_rate_limit_middleware()
+    if rate_limit_middleware:
+        app.add_middleware(rate_limit_middleware)
+        app.state.limiter = limiter
+        app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     
     # Instrument with OpenTelemetry
     if settings.ENABLE_TRACING:

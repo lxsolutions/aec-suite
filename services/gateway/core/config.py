@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     # File storage
     UPLOAD_DIR: str = "./data/uploads"
     MAX_UPLOAD_SIZE: int = 50 * 1024 * 1024  # 50MB
+
+    # Rate limiting
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_DEFAULT: str = "100/minute"
+    RATE_LIMIT_AUTHENTICATED: str = "200/minute"
+    RATE_LIMIT_UPLOADS: str = "10/minute"
     
     class Config:
         env_file = ".env"

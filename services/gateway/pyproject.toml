@@ -21,6 +21,8 @@ dependencies = [
     "nats-py>=2.0.0",
     "redis>=5.0.0",
     "python-dotenv>=1.0.0",
+    "slowapi>=0.1.8",
+    "limits>=3.6.0",
 ]
 
 [project.optional-dependencies]

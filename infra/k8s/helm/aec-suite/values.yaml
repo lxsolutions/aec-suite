@@ -1,0 +1,145 @@
+
+# Default values for AEC Suite umbrella chart
+global:
+  imageRegistry: "ghcr.io/lxsolutions"
+  imagePullPolicy: IfNotPresent
+  namespace: aec-suite
+  environment: development
+  
+  # Database configuration
+  postgres:
+    host: postgres
+    port: 5432
+    database: aec_suite
+    username: aec
+    password: aec123
+  
+  # Redis configuration
+  redis:
+    host: redis
+    port: 6379
+  
+  # NATS configuration
+  nats:
+    host: nats
+    port: 4222
+
+# Service configurations
+gateway:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+orchestrator:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: orchestrator
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3001
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+erp-bridge:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: erp-bridge
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3002
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+rover:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: rover
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3003
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+buildforge:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: buildforge
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3004
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Infrastructure services
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 15-alpine
+  persistence:
+    enabled: true
+    size: 10Gi
+
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: 7-alpine
+  persistence:
+    enabled: true
+    size: 5Gi
+
+nats:
+  enabled: true
+  image:
+    repository: nats
+    tag: 2-alpine
+  jetstream:
+    enabled: true
+    fileStorage:
+      size: 5Gi

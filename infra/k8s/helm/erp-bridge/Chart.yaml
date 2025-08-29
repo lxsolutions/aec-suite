@@ -1,0 +1,11 @@
+
+
+
+apiVersion: v2
+name: erp-bridge
+description: A Helm chart for AEC Suite ERP Bridge service
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+

@@ -1,0 +1,81 @@
+
+
+# Production environment values for AEC Suite
+global:
+  environment: production
+  imagePullPolicy: Always
+
+gateway:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
+orchestrator:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
+erp-bridge:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
+rover:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
+buildforge:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
+# Production infrastructure with high availability
+postgres:
+  persistence:
+    size: 100Gi
+  replication:
+    enabled: true
+    replicas: 2
+
+redis:
+  persistence:
+    size: 20Gi
+  cluster:
+    enabled: true
+    nodes: 3
+
+nats:
+  jetstream:
+    fileStorage:
+      size: 50Gi
+  cluster:
+    enabled: true
+    replicas: 3
+
+

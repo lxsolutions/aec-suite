@@ -1,0 +1,70 @@
+
+# Development environment values for AEC Suite
+global:
+  environment: development
+  imagePullPolicy: Always
+
+gateway:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+orchestrator:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+erp-bridge:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+rover:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+buildforge:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+# Development infrastructure with minimal resources
+postgres:
+  persistence:
+    size: 5Gi
+
+redis:
+  persistence:
+    size: 2Gi
+
+nats:
+  jetstream:
+    fileStorage:
+      size: 2Gi
+

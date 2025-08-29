@@ -44,6 +44,11 @@ dev:
 	docker-compose up -d
 	pnpm run dev
 
+# Start only infrastructure services
+dev.infra:
+	@echo "Starting infrastructure services..."
+	docker-compose up -d postgres redis nats jaeger
+
 # Clean build artifacts and dependencies
 clean:
 	@echo "Cleaning build artifacts..."
@@ -58,13 +63,14 @@ clean:
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  bootstrap - Install all dependencies and tooling"
-	@echo "  lint      - Run linting across all workspaces"
-	@echo "  test      - Run tests across all workspaces"
-	@echo "  build     - Build all packages and services"
-	@echo "  dev       - Start development environment"
-	@echo "  clean     - Clean build artifacts and dependencies"
-	@echo "  help      - Show this help message"
+	@echo "  bootstrap  - Install all dependencies and tooling"
+	@echo "  lint       - Run linting across all workspaces"
+	@echo "  test       - Run tests across all workspaces"
+	@echo "  build      - Build all packages and services"
+	@echo "  dev        - Start development environment"
+	@echo "  dev.infra  - Start only infrastructure services"
+	@echo "  clean      - Clean build artifacts and dependencies"
+	@echo "  help       - Show this help message"
 
 # Gateway specific targets
 gateway.run:

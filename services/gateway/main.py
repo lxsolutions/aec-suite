@@ -29,6 +29,7 @@ from core.middleware.rate_limit import (
     rate_limit_exceeded_handler,
     limiter
 )
+from core.middleware.error_handler import create_error_handler_middleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -107,6 +108,10 @@ def create_app() -> FastAPI:
         app.add_middleware(rate_limit_middleware)
         app.state.limiter = limiter
         app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    
+    # Error handling middleware
+    error_handler_middleware = create_error_handler_middleware()
+    app.add_middleware(error_handler_middleware)
     
     # Instrument with OpenTelemetry
     if settings.ENABLE_TRACING:

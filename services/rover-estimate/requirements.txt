@@ -1,0 +1,2 @@
+nats-py>=2.0.0
+libs-py-aec-shared @ file:///workspace/aec-suite/libs/py/aec_shared

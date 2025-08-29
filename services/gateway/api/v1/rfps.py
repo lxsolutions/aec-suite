@@ -121,4 +121,45 @@ async def upload_rfp_document(
             detail=f"Failed to upload document: {str(e)}"
         )
 
+@router.post("/ingest", response_model=RFPResponse)
+async def ingest_rfp(
+    file: UploadFile = File(...),
+    project_id: str = Form(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Ingest RFP document and trigger parsing"""
+    try:
+        # Save file and trigger orchestrator
+        files = {"file": (file.filename, file.file, file.content_type)}
+        data = {"project_id": project_id}
+        
+        response = await call_service(
+            f"{settings.ORCHESTRATOR_URL}/rfps/ingest",
+            method="post",
+            files=files,
+            data=data,
+            headers={"X-Org-ID": current_user["org_id"]}
+        )
+        
+        # Publish RFP parsed event
+        rfp_data = response.json()
+        await nats_client.publish(
+            "rfp.parsed",
+            {
+                "rfp_id": rfp_data["id"],
+                "project_id": project_id,
+                "org_id": current_user["org_id"],
+                "filename": file.filename
+            }
+        )
+        
+        return rfp_data
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to ingest RFP: {str(e)}"
+        )
+
 

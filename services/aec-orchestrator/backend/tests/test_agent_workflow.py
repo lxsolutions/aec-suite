@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Import the FastAPI app (adjust path as needed)
-from backend.src.backend.main import app  # Adjust this import based on your project structure
+from backend.main import app  # Adjust this import based on your project structure
 
 @pytest.fixture(scope="module")
 def test_client():

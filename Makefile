@@ -56,6 +56,11 @@ clean:
 	rm -rf **/*.egg-info
 	@echo "Clean complete!"
 
+# Seed database with initial data
+seed:
+	@echo "Seeding database with initial data..."
+	cd services/aec-orchestrator/backend && poetry run python ../../../../tools/seed.py
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -65,6 +70,7 @@ help:
 	@echo "  build     - Build all packages and services"
 	@echo "  dev       - Start development environment"
 	@echo "  clean     - Clean build artifacts and dependencies"
+	@echo "  seed      - Seed database with initial data"
 	@echo "  helm.lint - Lint Helm charts"
 	@echo "  helm.template - Template Helm charts for verification"
 	@echo "  helm.kind - Deploy to local KIND cluster (stub)"

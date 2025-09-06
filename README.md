@@ -192,6 +192,68 @@ make type-check
 3. Use pre-commit hooks: `pre-commit install`
 4. Create ADRs for significant architectural decisions
 
+## 🚢 Deployment
+
+### Quick Demo
+Run a local demo environment with all services:
+```bash
+make demo
+```
+
+This will start:
+- Infrastructure services (Postgres, Redis, NATS, Jaeger)
+- Gateway service on http://localhost:8080
+- ERP Bridge service
+- Jaeger UI on http://localhost:16686
+
+Stop the demo with:
+```bash
+make demo.stop
+```
+
+### Docker Images
+Multi-arch Docker images are automatically built and pushed to GitHub Container Registry on every push to main/master:
+
+```bash
+# Pull specific service image
+docker pull ghcr.io/lxsolutions/aec-suite-gateway:latest
+docker pull ghcr.io/lxsolutions/aec-suite-erp-bridge:latest
+```
+
+### Helm Charts
+Helm charts are available in the `deploy/helm` directory:
+
+```bash
+# Install ERP Bridge with Helm
+helm install erp-bridge deploy/helm/erp-bridge/ \
+  --set config.erpAdapter="acumatica" \
+  --set config.acumatica.baseUrl="https://your-acumatica-instance.com" \
+  --set config.acumatica.username="your-username" \
+  --set config.acumatica.password="your-password"
+```
+
+### Environment Configuration
+Key environment variables for ERP Bridge:
+```bash
+ERP_ADAPTER=acumatica  # or "odoo", "mock"
+NATS_URL=nats://nats:4222
+REDIS_URL=redis://redis:6379
+DATABASE_URL=postgresql://aec:aec123@postgresql:5432/aec_suite
+
+# Acumatica specific
+ACUMATICA_BASE_URL=https://your-instance.acumatica.com
+ACUMATICA_USERNAME=your-username
+ACUMATICA_PASSWORD=your-password
+ACUMATICA_COMPANY=your-company
+ACUMATICA_BRANCH=your-branch
+
+# Odoo specific  
+ODOO_BASE_URL=https://your-odoo-instance.com
+ODOO_DATABASE=your-database
+ODOO_USERNAME=your-username
+ODOO_PASSWORD=your-password
+```
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.

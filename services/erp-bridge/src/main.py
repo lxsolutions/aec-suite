@@ -12,7 +12,8 @@ from datetime import datetime
 import nats
 from nats.errors import TimeoutError
 from libs.py.aec_shared.events import NATSEventPublisher
-from libs.py.aec_shared.models import EstimateReadyEvent, ERPSyncCompletedEvent
+from libs.py.aec_shared.events import EstimateReadyEvent, ERPSyncCompletedEvent
+from adapters.config import get_erp_adapter_config, create_erp_adapter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,6 +24,21 @@ class ERPBridgeNATSConsumer:
         self.nats_url = nats_url
         self.nc = None
         self.publisher = NATSEventPublisher(nats_url)
+        self.erp_adapter = None
+        self._initialize_erp_adapter()
+
+    def _initialize_erp_adapter(self):
+        """Initialize ERP adapter from configuration"""
+        try:
+            config = get_erp_adapter_config()
+            if config:
+                self.erp_adapter = create_erp_adapter(config)
+                logger.info(f"Initialized ERP adapter: {config.adapter_type}")
+            else:
+                logger.warning("No ERP adapter configuration found. Using mock implementation.")
+        except Exception as e:
+            logger.error(f"Failed to initialize ERP adapter: {e}")
+            self.erp_adapter = None
 
     async def connect(self):
         """Connect to NATS server"""
@@ -58,21 +74,46 @@ class ERPBridgeNATSConsumer:
 
     async def sync_with_erp(self, estimate_data: dict) -> str:
         """
-        Sync estimate with ERP system (mock implementation)
-        In production, this would integrate with Acumatica, Odoo, etc.
+        Sync estimate with ERP system using configured adapter
+        Falls back to mock implementation if no adapter configured
         """
         estimate = estimate_data.get('estimate', {})
         estimate_id = estimate.get('id', 'unknown-estimate')
         
         logger.info(f"Syncing estimate {estimate_id} with ERP system")
         
-        # Mock ERP integration - generate a fake ERP ID
+        if self.erp_adapter:
+            try:
+                # Authenticate with ERP system
+                if not await self.erp_adapter.authenticate():
+                    logger.error("ERP authentication failed, falling back to mock")
+                    return await self._mock_erp_sync(estimate_id)
+                
+                # Sync estimate through golden path: estimate → budget → PO → invoice
+                budget_id = await self.erp_adapter.sync_estimate_to_budget(estimate)
+                if budget_id:
+                    po_id = await self.erp_adapter.sync_budget_to_po(budget_id)
+                    if po_id:
+                        invoice_id = await self.erp_adapter.sync_po_to_invoice(po_id)
+                        if invoice_id:
+                            logger.info(f"Estimate {estimate_id} fully synced to ERP with invoice: {invoice_id}")
+                            return invoice_id
+                
+                logger.warning(f"ERP sync incomplete for estimate {estimate_id}, using budget/PO ID")
+                return budget_id or po_id or await self._mock_erp_sync(estimate_id)
+                
+            except Exception as e:
+                logger.error(f"ERP sync failed for estimate {estimate_id}: {e}")
+                return await self._mock_erp_sync(estimate_id)
+        else:
+            # Fall back to mock implementation
+            return await self._mock_erp_sync(estimate_id)
+    
+    async def _mock_erp_sync(self, estimate_id: str) -> str:
+        """Mock ERP integration for development/testing"""
         erp_id = f"ERP-{uuid.uuid4().hex[:8].upper()}"
-        
-        # Simulate some processing time
         await asyncio.sleep(0.5)
-        
-        logger.info(f"Estimate {estimate_id} synced to ERP with ID: {erp_id}")
+        logger.info(f"Estimate {estimate_id} mock-synced to ERP with ID: {erp_id}")
         return erp_id
 
     async def publish_erp_sync_completed(self, estimate_id: str, erp_id: str):

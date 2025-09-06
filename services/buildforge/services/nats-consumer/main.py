@@ -11,6 +11,7 @@ import nats
 from nats.errors import TimeoutError
 from libs.py.aec_shared.events import NATSEventPublisher
 from libs.py.aec_shared.models import RfpParsedEvent, EstimateReadyEvent
+from libs.py.aec_shared.retry import with_retry, RetryConfig, DeadLetterQueue, should_retry_transient_error
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +22,14 @@ class BuildForgeNATSConsumer:
         self.nats_url = nats_url
         self.nc = None
         self.publisher = NATSEventPublisher(nats_url)
+        self.dlq = DeadLetterQueue()
+        self.retry_config = RetryConfig(
+            max_retries=3,
+            initial_delay=2.0,
+            max_delay=30.0,
+            backoff_factor=2.0,
+            jitter=True
+        )
 
     async def connect(self):
         """Connect to NATS server"""
@@ -54,6 +63,16 @@ class BuildForgeNATSConsumer:
         await self.nc.subscribe("rfp.parsed", cb=message_handler)
         logger.info("Subscribed to rfp.parsed events")
 
+    @with_retry(
+        retry_config=RetryConfig(
+            max_retries=3,
+            initial_delay=2.0,
+            max_delay=30.0,
+            backoff_factor=2.0,
+            jitter=True
+        ),
+        should_retry=should_retry_transient_error
+    )
     async def generate_estimate(self, rfp_data: dict) -> dict:
         """
         Generate estimate from parsed RFP data
@@ -110,17 +129,25 @@ class BuildForgeNATSConsumer:
             "notes": "Auto-generated estimate from RFP parsing"
         }
 
+
+    @with_retry(
+        retry_config=RetryConfig(
+            max_retries=3,
+            initial_delay=1.0,
+            max_delay=10.0,
+            backoff_factor=2.0,
+            jitter=True
+        ),
+        should_retry=should_retry_transient_error
+    )
     async def publish_estimate_ready(self, estimate_data: dict):
-        """Publish estimate.ready event"""
-        try:
-            event = EstimateReadyEvent(
-                estimate=estimate_data,
-                schedule=estimate_data.get('schedule')
-            )
-            await self.publisher.publish_estimate_ready(event)
-            logger.info(f"Published estimate.ready event for estimate: {estimate_data.get('rfp_id')}")
-        except Exception as e:
-            logger.error(f"Failed to publish estimate.ready event: {e}")
+        """Publish estimate.ready event with retry logic"""
+        event = EstimateReadyEvent(
+            estimate=estimate_data,
+            schedule=estimate_data.get('schedule')
+        )
+        await self.publisher.publish_estimate_ready(event)
+        logger.info(f"Published estimate.ready event for estimate: {estimate_data.get('rfp_id')}")
 
     async def run(self):
         """Run the NATS consumer"""

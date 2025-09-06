@@ -30,6 +30,9 @@ from core.middleware.rate_limit import (
     limiter
 )
 from core.middleware.error_handler import create_error_handler_middleware
+from core.middleware.auth import AuthMiddleware
+from core.middleware.policy import PolicyMiddleware
+from core.middleware.audit_logger import AuditLoggerMiddleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -112,6 +115,15 @@ def create_app() -> FastAPI:
     # Error handling middleware
     error_handler_middleware = create_error_handler_middleware()
     app.add_middleware(error_handler_middleware)
+    
+    # Authentication middleware (extracts JWT and sets user context)
+    app.add_middleware(AuthMiddleware)
+    
+    # Policy middleware (enforces role-based access control)
+    app.add_middleware(PolicyMiddleware)
+    
+    # Audit logging middleware (logs API access)
+    app.add_middleware(AuditLoggerMiddleware)
     
     # Instrument with OpenTelemetry
     if settings.ENABLE_TRACING:

@@ -6,13 +6,15 @@ Security utilities for JWT authentication and authorization
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 
 from .config import settings
+from libs.py.aec_shared.models import UserContext, UserRole
+from libs.py.aec_shared.otel import get_current_trace_id
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -41,8 +43,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    """Get current user from JWT token"""
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserContext:
+    """Get current user from JWT token with standardized schema"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -53,11 +55,26 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str = payload.get("sub")
         org_id: str = payload.get("org_id")
+        roles: List[str] = payload.get("roles", [])
         
         if user_id is None or org_id is None:
             raise credentials_exception
         
-        return {"user_id": user_id, "org_id": org_id}
+        # Convert role strings to UserRole enum
+        user_roles = []
+        for role_str in roles:
+            try:
+                user_roles.append(UserRole(role_str))
+            except ValueError:
+                # Skip invalid roles but don't fail authentication
+                continue
+        
+        return UserContext(
+            user_id=user_id,
+            org_id=org_id,
+            roles=user_roles,
+            trace_id=get_current_trace_id()
+        )
     
     except JWTError:
         raise credentials_exception
@@ -71,11 +88,51 @@ async def get_org_context(org_id: Optional[str] = None) -> dict:
     # Try to get from token
     try:
         user = await get_current_user()
-        return {"org_id": user["org_id"]}
+        return {"org_id": user.org_id}
     except HTTPException:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Organization context required",
         )
+
+
+async def require_role(required_role: UserRole, user: UserContext = Depends(get_current_user)) -> UserContext:
+    """Dependency to require a specific role"""
+    if not user.has_role(required_role):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Requires {required_role.value} role",
+        )
+    return user
+
+
+async def require_any_role(required_roles: List[UserRole], user: UserContext = Depends(get_current_user)) -> UserContext:
+    """Dependency to require any of the specified roles"""
+    if not user.has_any_role(required_roles):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Requires one of: {[r.value for r in required_roles]}",
+        )
+    return user
+
+
+def create_access_token_with_roles(data: dict, roles: List[UserRole], expires_delta: Optional[timedelta] = None) -> str:
+    """Create JWT access token with standardized role claims"""
+    to_encode = data.copy()
+    
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    # Add standardized claims
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.utcnow(),
+        "roles": [role.value for role in roles]
+    })
+    
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
 
 

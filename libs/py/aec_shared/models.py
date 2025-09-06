@@ -38,6 +38,31 @@ class ScheduleStatus(str, Enum):
     COMPLETED = "completed"
 
 
+class UserRole(str, Enum):
+    """Standardized user roles for multi-tenant RBAC"""
+    ORG_ADMIN = "org_admin"        # Full organization access, user management
+    PROJECT_MANAGER = "project_manager"  # Create/manage projects, estimates, RFPs
+    ESTIMATOR = "estimator"        # Create/view estimates, limited project access
+    VIEWER = "viewer"              # Read-only access to authorized resources
+    SYSTEM = "system"              # Internal service accounts (no tenant context)
+
+
+class UserContext(BaseModel):
+    """User context with tenant and role information"""
+    user_id: str
+    org_id: str
+    roles: List[UserRole]
+    trace_id: Optional[str] = None
+    
+    def has_role(self, role: UserRole) -> bool:
+        """Check if user has a specific role"""
+        return role in self.roles
+    
+    def has_any_role(self, roles: List[UserRole]) -> bool:
+        """Check if user has any of the specified roles"""
+        return any(role in self.roles for role in roles)
+
+
 class Project(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     name: str

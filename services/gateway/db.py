@@ -9,6 +9,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import text
 
 from core.config import settings
 
@@ -32,10 +33,27 @@ AsyncSessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Get async database session"""
+from fastapi import Request
+from typing import Optional
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def get_db(request: Optional[Request] = None) -> AsyncGenerator[AsyncSession, None]:
+    """Get async database session with RLS context"""
     async with AsyncSessionLocal() as session:
         try:
+            # Set RLS context if request is provided and user is authenticated
+            if request and hasattr(request.state, 'user'):
+                user = request.state.user
+                await session.execute(
+                    text("SELECT set_config('app.current_org_id', :org_id, false)"),
+                    {"org_id": user.org_id}
+                )
+                await session.execute(
+                    text("SELECT set_config('app.current_user_role', :role, false)"),
+                    {"role": user.roles[0].value if user.roles else 'none'}
+                )
+            
             yield session
         except Exception as e:
             await session.rollback()

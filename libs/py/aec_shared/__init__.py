@@ -1,0 +1,1 @@
+# AEC Shared Library - Common utilities and models for AEC Suite services

@@ -5,7 +5,7 @@
 RFP (Request for Proposal) management endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Header
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -13,6 +13,9 @@ from ..dependencies import call_service
 from core.config import settings
 from core.security import get_current_user
 from core.events import nats_client
+from libs.py.aec_shared.errors import InternalServerError, ConflictError
+from libs.py.aec_shared.otel import get_current_trace_id
+from core.idempotency import idempotency_manager, require_idempotency_key, handle_idempotency
 
 router = APIRouter(prefix="/v1/rfps", tags=["rfps"])
 
@@ -57,45 +60,55 @@ async def list_rfps(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch RFPs: {str(e)}"
-        )
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to fetch RFPs: {str(e)}", trace_id)
 
 @router.post("", response_model=RFPResponse, status_code=status.HTTP_201_CREATED)
 async def create_rfp(
     rfp: RFPCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
 ):
     """Create a new RFP"""
     try:
-        response = await call_service(
-            f"{settings.BUILDFORGE_URL}/rfps",
-            method="post",
-            json=rfp.dict(),
-            headers={"X-Org-ID": current_user["org_id"]}
+        # Require idempotency key for create operations
+        idempotency_key = await require_idempotency_key(idempotency_key, "rfp")
+        
+        # Handle idempotent operation
+        async def create_rfp_operation():
+            response = await call_service(
+                f"{settings.BUILDFORGE_URL}/rfps",
+                method="post",
+                json=rfp.dict(),
+                headers={
+                    "X-Org-ID": current_user["org_id"],
+                    "Idempotency-Key": idempotency_key
+                }
+            )
+            
+            # Publish RFP created event
+            rfp_data = response.json()
+            await nats_client.publish(
+                "rfp.created",
+                {
+                    "rfp_id": rfp_data["id"],
+                    "project_id": rfp_data["project_id"],
+                    "org_id": current_user["org_id"],
+                    "due_date": rfp_data["due_date"]
+                }
+            )
+            
+            return rfp_data
+        
+        return await handle_idempotency(
+            idempotency_key, "rfp", create_rfp_operation
         )
         
-        # Publish RFP created event
-        rfp_data = response.json()
-        await nats_client.publish(
-            "rfp.created",
-            {
-                "rfp_id": rfp_data["id"],
-                "project_id": rfp_data["project_id"],
-                "org_id": current_user["org_id"],
-                "due_date": rfp_data["due_date"]
-            }
-        )
-        
-        return rfp_data
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create RFP: {str(e)}"
-        )
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to create RFP: {str(e)}", trace_id)
 
 @router.post("/{rfp_id}/documents")
 async def upload_rfp_document(
@@ -116,10 +129,8 @@ async def upload_rfp_document(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to upload document: {str(e)}"
-        )
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to upload document: {str(e)}", trace_id)
 
 @router.post("/ingest", response_model=RFPResponse)
 async def ingest_rfp(
@@ -157,9 +168,7 @@ async def ingest_rfp(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to ingest RFP: {str(e)}"
-        )
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to ingest RFP: {str(e)}", trace_id)
 
 

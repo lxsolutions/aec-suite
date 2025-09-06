@@ -25,8 +25,8 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             # Handle FastAPI HTTP exceptions
             trace_id = get_current_trace_id()
             error_response = AECError(
-                traceId=trace_id,
-                code=http_exc.status_code,
+                trace_id=trace_id,
+                code=str(http_exc.status_code),
                 message=http_exc.detail,
                 details=getattr(http_exc, "details", None)
             )
@@ -41,8 +41,8 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             logger.error(f"Unhandled exception: {exc}", exc_info=True)
             
             error_response = AECError(
-                traceId=trace_id,
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                trace_id=trace_id,
+                code=str(status.HTTP_500_INTERNAL_SERVER_ERROR),
                 message="Internal server error",
                 details={"exception_type": type(exc).__name__}
             )

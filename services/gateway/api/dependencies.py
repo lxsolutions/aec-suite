@@ -4,10 +4,12 @@ API dependencies and utilities
 """
 
 import httpx
-from fastapi import HTTPException, status
-from typing import Dict, Any
+from fastapi import HTTPException, status, Depends
+from typing import Dict, Any, Optional
 
 from core.config import settings
+from core.security import get_current_user
+from libs.py.aec_shared.models import UserContext
 from libs.py.aec_shared.errors import ServiceUnavailableError, create_http_exception
 from libs.py.aec_shared.otel import get_current_trace_id
 
@@ -78,10 +80,9 @@ async def call_service(service_url: str, method: str = "get", **kwargs) -> httpx
         except httpx.RequestError as e:
             raise ServiceUnavailableError("orchestrator", trace_id)
 
-async def get_org_id() -> str:
-    """Get organization ID from context (stub for now)"""
-    # TODO: Implement proper JWT auth extraction
-    return "org-123"
+async def get_org_id(user: UserContext = Depends(get_current_user)) -> str:
+    """Get organization ID from authenticated user context"""
+    return user.org_id
 
 async def get_idempotency_key() -> Optional[str]:
     """Get idempotency key from header"""

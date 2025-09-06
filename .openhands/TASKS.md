@@ -1,13 +1,15 @@
 # Task List
 
-1. 🔄 M1: Stabilize Vertical Slice
+1. ✅ 
 
-2. ⏳ M2: Multi-tenant AuthZ (RBAC) and Isolation
+2. ✅ 
 
-3. ⏳ M3: ERP Bridge - Acumatica First
+3. ✅ 
 
-4. ⏳ M4: Packaging & Deployment
+4. ✅ 
 
-5. ⏳ Quality Gates
+5. 🔄 
+
+6. ⏳ 
 
 

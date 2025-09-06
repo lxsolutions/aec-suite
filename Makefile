@@ -69,6 +69,8 @@ help:
 	@echo "  build      - Build all packages and services"
 	@echo "  dev        - Start development environment"
 	@echo "  dev.infra  - Start only infrastructure services"
+	@echo "  demo       - Start demo environment with all services"
+	@echo "  demo.stop  - Stop demo environment"
 	@echo "  clean      - Clean build artifacts and dependencies"
 	@echo "  help       - Show this help message"
 
@@ -84,3 +86,26 @@ test.gateway:
 gateway.install:
 	@echo "Installing Gateway dependencies..."
 	cd services/gateway && uv pip install -e .
+
+# Demo environment
+demo:
+	@echo "Starting AEC Suite demo environment..."
+	@echo "Starting infrastructure services..."
+	docker-compose up -d postgres redis nats jaeger
+	@echo "Waiting for services to be ready..."
+	sleep 10
+	@echo "Starting Gateway service..."
+	cd services/gateway && uv run uvicorn main:app --host 0.0.0.0 --port 8080 &
+	@echo "Starting ERP Bridge service..."
+	cd services/erp-bridge && uv run python main.py &
+	@echo "Demo environment started!"
+	@echo "Gateway: http://localhost:8080"
+	@echo "Jaeger UI: http://localhost:16686"
+	@echo "Use Ctrl+C to stop all services"
+
+demo.stop:
+	@echo "Stopping demo services..."
+	pkill -f "uvicorn main:app" || true
+	pkill -f "python main.py" || true
+	docker-compose down
+	@echo "Demo services stopped"

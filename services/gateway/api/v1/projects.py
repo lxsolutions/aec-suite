@@ -4,13 +4,16 @@
 Project management endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from pydantic import BaseModel
 from typing import List, Optional
 
-from ..dependencies import call_service
+from ..dependencies import call_service, get_idempotency_key
 from core.config import settings
 from core.security import get_current_user
+from libs.py.aec_shared.errors import InternalServerError, create_http_exception, ConflictError
+from libs.py.aec_shared.otel import get_current_trace_id
+from core.idempotency import idempotency_manager, require_idempotency_key, handle_idempotency
 
 router = APIRouter(prefix="/v1/projects", tags=["projects"])
 
@@ -48,32 +51,42 @@ async def list_projects(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch projects: {str(e)}"
-        )
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to fetch projects: {str(e)}", trace_id)
 
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
     project: ProjectCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
 ):
     """Create a new project"""
     try:
-        response = await call_service(
-            f"{settings.ORCHESTRATOR_URL}/projects",
-            method="post",
-            json=project.dict(),
-            headers={"X-Org-ID": current_user["org_id"]}
+        # Require idempotency key for create operations
+        idempotency_key = await require_idempotency_key(idempotency_key, "project")
+        
+        # Handle idempotent operation
+        async def create_project_operation():
+            response = await call_service(
+                f"{settings.ORCHESTRATOR_URL}/projects",
+                method="post",
+                json=project.dict(),
+                headers={
+                    "X-Org-ID": current_user["org_id"],
+                    "Idempotency-Key": idempotency_key
+                }
+            )
+            return response.json()
+        
+        return await handle_idempotency(
+            idempotency_key, "project", create_project_operation
         )
-        return response.json()
+        
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create project: {str(e)}"
-        )
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to create project: {str(e)}", trace_id)
 
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
@@ -90,8 +103,6 @@ async def get_project(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch project: {str(e)}"
-        )
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to fetch project: {str(e)}", trace_id)
 

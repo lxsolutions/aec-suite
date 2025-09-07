@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 
 from db import Base
-from libs.py.aec_shared.models import EstimateStatus
+from aec_shared.models import EstimateStatus
 
 
 class Estimate(Base):

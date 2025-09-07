@@ -12,7 +12,7 @@ def test_simple():
 def test_import_shared_models():
     """Test that shared models can be imported"""
     try:
-        from libs.py.aec_shared.models import Project, Rfp, Estimate
+        from aec_shared.models import Project, Rfp, Estimate
         assert True
     except ImportError as e:
         print(f"Import error: {e}")

@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 
 from db import Base
-from libs.py.aec_shared.models import ProjectStatus
+from aec_shared.models import ProjectStatus
 
 
 class Project(Base):

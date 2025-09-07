@@ -5,7 +5,8 @@
 Shared settings and configuration for AEC Suite
 """
 
-from pydantic import BaseSettings, Field, PostgresDsn, RedisDsn, AnyUrl
+from pydantic import Field, PostgresDsn, RedisDsn, AnyUrl
+from pydantic_settings import BaseSettings
 from typing import Optional
 
 

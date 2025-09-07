@@ -10,8 +10,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette import status
 
-from libs.py.aec_shared.errors import AECError
-from libs.py.aec_shared.otel import get_current_trace_id
+from aec_shared.errors import AECError
+from aec_shared.otel import get_current_trace_id
 
 logger = logging.getLogger(__name__)
 

@@ -53,6 +53,81 @@ A unified platform for Architecture, Engineering, and Construction (AEC) orchest
    pnpm dev
    ```
 
+## 🎯 Vertical Slice: Bid→Plan→Bill Workflow
+
+Run the complete vertical slice demonstrating the end-to-end workflow:
+
+1. **Start infrastructure services**:
+   ```bash
+   make bootstrap
+   docker compose up -d postgres redis nats jaeger
+   ```
+
+2. **Start the FastAPI gateway**:
+   ```bash
+   make gateway.run
+   # Gateway runs on http://localhost:8080
+   ```
+
+3. **Verify gateway health**:
+   ```bash
+   curl http://localhost:8080/healthz
+   # Should return: {"status": "ok"}
+   ```
+
+4. **Test the workflow**:
+   ```bash
+   # Create a project
+   curl -X POST http://localhost:8080/v1/projects \
+     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1NjQyNzQwMH0.XHfCG5ZrKycPhDndWT2oScG1vsfRYQYME3iOEPBpa5Y" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Demo Project", "client_id": "demo-client", "budget": 1000000}'
+
+   # Upload an RFP (example file)
+   echo "Construction project specifications" > test_rfp.txt
+   curl -X POST http://localhost:8080/v1/rfps/ingest \
+     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1NjQyNzQwMH0.XHfCG5ZrKycPhDndWT2oScG1vsfRYQYME3iOEPBpa5Y" \
+     -F "file=@test_rfp.txt" \
+     -F "project_id=demo-project-123"
+
+   # Check generated estimate
+   curl http://localhost:8080/v1/estimates?project_id=demo-project-123 \
+     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1NjQyNzQwMH0.XHfCG5ZrKycPhDndWT2oScG1vsfRYQYME3iOEPBpa5Y"
+   ```
+
+5. **Access observability**:
+   - Jaeger UI: http://localhost:16686 (tracing)
+   - View distributed traces across services
+
+### Key Components Tested
+
+- ✅ **Gateway**: FastAPI with JWT auth and rate limiting
+- ✅ **Events**: NATS messaging for cross-service communication  
+- ✅ **Database**: PostgreSQL storage for projects and estimates
+- ✅ **Observability**: OpenTelemetry tracing with Jaeger
+- ✅ **UI**: EstateJoint Bid→Plan→Bill page integration
+- ✅ **ERP Integration**: Stub ERP bridge with NATS consumer
+
+### Environment Variables
+
+Create `.env` file in `services/gateway/`:
+```bash
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key
+JWT_ALGORITHM=HS256
+
+# Database
+DATABASE_URL=postgresql+asyncpg://aec:aec123@localhost:5432/aec_suite
+
+# NATS
+NATS_URL=nats://localhost:4222
+
+# Services
+ORCHESTRATOR_URL=http://localhost:3001
+ROVER_URL=http://localhost:3002
+ERP_BRIDGE_URL=http://localhost:3003
+```
+
 ## 📁 Repository Structure
 
 ```

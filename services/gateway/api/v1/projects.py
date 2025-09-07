@@ -95,3 +95,47 @@ async def get_project(
             detail=f"Failed to fetch project: {str(e)}"
         )
 
+@router.put("/{project_id}", response_model=ProjectResponse)
+async def update_project(
+    project_id: str,
+    project: ProjectCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update project details"""
+    try:
+        response = await call_service(
+            f"{settings.ORCHESTRATOR_URL}/projects/{project_id}",
+            method="put",
+            json=project.dict(),
+            headers={"X-Org-ID": current_user["org_id"]}
+        )
+        return response.json()
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update project: {str(e)}"
+        )
+
+@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_project(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete project"""
+    try:
+        await call_service(
+            f"{settings.ORCHESTRATOR_URL}/projects/{project_id}",
+            method="delete",
+            headers={"X-Org-ID": current_user["org_id"]}
+        )
+        return None
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete project: {str(e)}"
+        )
+

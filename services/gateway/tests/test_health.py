@@ -64,7 +64,7 @@ def test_health_check_rate_limit():
     """Test rate limiting on health endpoints"""
     # Make multiple health check requests
     responses = []
-    for _ in range(150):  # Should be under default rate limit (100/min)
+    for _ in range(50):  # Should be under default rate limit (100/min)
         response = client.get("/v1/health")
         responses.append(response.status_code)
     

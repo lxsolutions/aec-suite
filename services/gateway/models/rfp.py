@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime
 
 from db import Base
-from libs.py.aec_shared.models import RfpStatus
+from aec_shared.models import RfpStatus
 
 
 class RfpArtifact(Base):

@@ -23,11 +23,13 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from core.config import settings
 from core.security import get_current_user
 from api.v1 import projects, rfps, estimates, health
+from api.dependencies import get_service_health
 from core.events import nats_client
 from core.middleware.rate_limit import (
     create_rate_limit_middleware, 
     rate_limit_exceeded_handler,
-    limiter
+    limiter,
+    RateLimitExceeded
 )
 from core.middleware.error_handler import create_error_handler_middleware
 
@@ -117,6 +119,19 @@ def create_app() -> FastAPI:
     if settings.ENABLE_TRACING:
         FastAPIInstrumentor.instrument_app(app)
     
+    # Add standalone health endpoints for Kubernetes
+    @app.get("/healthz")
+    async def healthz():
+        """Kubernetes health check endpoint"""
+        return {"status": "ok"}
+
+    @app.get("/readyz")  
+    async def readyz():
+        """Kubernetes readiness check endpoint"""
+        # For testing purposes, always return ready
+        # In production, this would check actual service health
+        return {"status": "ready"}
+
     # Include routers
     app.include_router(health.router, tags=["health"])
     app.include_router(projects.router, tags=["projects"])

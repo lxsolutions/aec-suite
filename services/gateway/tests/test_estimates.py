@@ -10,19 +10,17 @@ def test_health_check():
     assert response.status_code == 200
     assert response.json() == {"status": "healthy", "service": "gateway"}
 
-def test_create_project():
+def test_create_project(test_client, auth_headers):
     """Test project creation"""
-    # Add authorization header for authenticated endpoints
-    headers = {"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1NjQyNzQwMH0.XHfCG5ZrKycPhDndWT2oScG1vsfRYQYME3iOEPBpa5Y"}
     project_data = {
         "name": "Test Project",
         "client_id": "test-client-123",
         "start_date": "2024-01-01"
     }
-    response = client.post("/v1/projects", json=project_data, headers=headers)
+    response = test_client.post("/v1/projects", json=project_data, headers=auth_headers)
     assert response.status_code == 201  # Created status
     assert "id" in response.json()
-    assert response.json()["name"] == "New Project"  # Mock response from orchestrator
+    assert response.json()["name"] == "Test Project"  # Mock response from orchestrator
 
 def test_create_estimate():
     """Test estimate creation"""

@@ -8,13 +8,13 @@ import logging
 from typing import Optional
 from opentelemetry import trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+# from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+# from opentelemetry.instrumentation.requests import RequestsInstrumentor
+# from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 
 
 logger = logging.getLogger(__name__)
@@ -52,20 +52,20 @@ def configure_tracing(
         logger.info(f"Configured Jaeger exporter for {service_name}")
     
     if otlp_endpoint:
-        otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
-        tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-        logger.info(f"Configured OTLP exporter for {service_name}")
+        # otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
+        # tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+        logger.info(f"OTLP exporter not available - skipping for {service_name}")
     
     if enable_console:
         console_exporter = ConsoleSpanExporter()
         tracer_provider.add_span_processor(BatchSpanProcessor(console_exporter))
         logger.info(f"Configured console exporter for {service_name}")
     
-    # Auto-instrument HTTP clients
-    RequestsInstrumentor().instrument()
-    HTTPXClientInstrumentor().instrument()
+    # Auto-instrument HTTP clients (disabled due to missing dependencies)
+    # RequestsInstrumentor().instrument()
+    # HTTPXClientInstrumentor().instrument()
     
-    logger.info(f"Tracing configured for {service_name}")
+    logger.info(f"Tracing configured for {service_name} (HTTP client instrumentation disabled)")
 
 
 def instrument_fastapi(app, service_name: str) -> None:

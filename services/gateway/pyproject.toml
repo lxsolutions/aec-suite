@@ -23,6 +23,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "slowapi>=0.1.8",
     "limits>=3.6.0",
+    "pydantic-settings>=2.10.1",
 ]
 
 [project.optional-dependencies]

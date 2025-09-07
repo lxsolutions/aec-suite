@@ -61,52 +61,6 @@ importers:
         specifier: ^3.4.1
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.15))(@types/node@20.19.11)(typescript@5.9.2))
 
-  apps/estatejoint/frontend:
-    dependencies:
-      '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.15))(@types/node@20.19.11)(typescript@5.9.2)))
-      '@testing-library/jest-dom':
-        specifier: ^5.17.0
-        version: 5.17.0
-      '@testing-library/react':
-        specifier: ^13.4.0
-        version: 13.4.0(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@testing-library/user-event':
-        specifier: ^13.5.0
-        version: 13.5.0(@testing-library/dom@8.20.1)
-      axios:
-        specifier: ^1.6.7
-        version: 1.11.0
-      leaflet:
-        specifier: ^1.9.4
-        version: 1.9.4
-      react:
-        specifier: ^18.2.0
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.2.0
-        version: 18.3.1(react@18.3.1)
-      react-leaflet:
-        specifier: ^4.2.1
-        version: 4.2.1(leaflet@1.9.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-scripts:
-        specifier: 5.0.1
-        version: 5.0.1(@babel/plugin-syntax-flow@7.27.1(@babel/core@7.28.3))(@babel/plugin-transform-react-jsx@7.27.1(@babel/core@7.28.3))(@swc/core@1.13.5(@swc/helpers@0.5.15))(@types/babel__core@7.20.5)(eslint@8.57.1)(react@18.3.1)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.15))(@types/node@20.19.11)(typescript@5.9.2))(type-fest@4.41.0)(typescript@5.9.2)
-      web-vitals:
-        specifier: ^2.1.4
-        version: 2.1.4
-    devDependencies:
-      autoprefixer:
-        specifier: ^10.4.17
-        version: 10.4.21(postcss@8.5.6)
-      postcss:
-        specifier: ^8.4.35
-        version: 8.5.6
-      tailwindcss:
-        specifier: ^3.4.1
-        version: 3.4.17(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.15))(@types/node@20.19.11)(typescript@5.9.2))
-
   services/aec-orchestrator/frontend:
     dependencies:
       '@emotion/react':

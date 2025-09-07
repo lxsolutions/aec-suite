@@ -97,6 +97,27 @@ async def create_rfp(
             detail=f"Failed to create RFP: {str(e)}"
         )
 
+
+@router.get("/{rfp_id}", response_model=RFPResponse)
+async def get_rfp_by_id(
+    rfp_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get RFP by ID"""
+    try:
+        response = await call_service(
+            f"{settings.BUILDFORGE_URL}/rfps/{rfp_id}",
+            headers={"X-Org-ID": current_user["org_id"]}
+        )
+        return response.json()
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch RFP: {str(e)}"
+        )
+
 @router.post("/{rfp_id}/documents")
 async def upload_rfp_document(
     rfp_id: str,

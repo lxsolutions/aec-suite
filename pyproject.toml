@@ -1,7 +1,7 @@
 
 [build-system]
-requires = ["uv>=0.4.0"]
-build-backend = "uv"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "aec-suite"
@@ -9,33 +9,26 @@ version = "0.0.0"
 description = "AEC Suite Monorepo - Unified platform for AEC orchestration, rover operations, and ERP integration"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "LX Solutions", email = "engineering@lxsolutions.com"}
 ]
 
-[tool.uv]
-# Workspace configuration for Python packages
-workspace = [
-    {path = "services/buildforge"},
-    {path = "services/orchestrator/backend"},
-    {path = "services/rover/sdk/python"},
-    {path = "services/rover/sim/tractor-sim"},
-    {path = "apps/estatejoint/backend"},
-    {path = "apps/estatejoint/estatejoint_api"},
-    {path = "libs/py/**"},
-]
+[tool.setuptools]
+packages = []
 
-[tool.uv.sync]
-# Default sync settings for all workspace members
-extra-index-urls = []
-no-dev = false
-upgrade = false
+# [tool.uv]
+# # Workspace configuration for Python packages
+# workspace = [
+#     "services/buildforge",
+#     "services/orchestrator/backend",
+#     "services/rover/sdk/python",
+#     "services/rover/sim/tractor-sim",
+#     "apps/estatejoint/backend",
+#     "apps/estatejoint/estatejoint_api",
+#     "libs/py/**",
+# ]
 
-[tool.uv.lock]
-# Lock file strategy
-strategy = "cross-platform"
-
-[tool.uv.tool]
-# Tool configuration for the workspace
-python = "3.12"
+# [tool.uv.tool]
+# # Tool configuration for the workspace
+# python = "3.12"

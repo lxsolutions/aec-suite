@@ -1,0 +1,206 @@
+
+asyncapi: 2.6.0
+id: urn:aec-suite:estimate-events:1.0.0
+defaultContentType: application/json
+info:
+  title: AEC Suite Estimate Events
+  version: 1.0.0
+  description: Event-driven architecture for estimate lifecycle management in AEC Suite
+  contact:
+    name: LX Solutions Engineering
+    url: https://lxsolutions.com
+    email: engineering@lxsolutions.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+tags:
+  - name: estimates
+    description: Estimate lifecycle management events
+  - name: aec
+    description: Architecture, Engineering, and Construction events
+
+servers:
+  nats:
+    url: nats://localhost:4222
+    protocol: nats
+    description: NATS server for event streaming
+
+channels:
+  estimate.created:
+    description: Event published when a new estimate is created
+    publish:
+      operationId: publishEstimateCreated
+      message:
+        $ref: '#/components/messages/EstimateCreated'
+    subscribe:
+      operationId: subscribeEstimateCreated
+      message:
+        $ref: '#/components/messages/EstimateCreated'
+
+  estimate.approved:
+    description: Event published when an estimate is approved
+    publish:
+      operationId: publishEstimateApproved
+      message:
+        $ref: '#/components/messages/EstimateApproved'
+    subscribe:
+      operationId: subscribeEstimateApproved
+      message:
+        $ref: '#/components/messages/EstimateApproved'
+
+  estimate.rejected:
+    description: Event published when an estimate is rejected
+    publish:
+      operationId: publishEstimateRejected
+      message:
+        $ref: '#/components/messages/EstimateRejected'
+    subscribe:
+      operationId: subscribeEstimateRejected
+      message:
+        $ref: '#/components/messages/EstimateRejected'
+
+components:
+  messages:
+    EstimateCreated:
+      name: estimateCreated
+      title: Estimate Created Event
+      summary: Published when a new estimate is created
+      payload:
+        $ref: '#/components/schemas/EstimateCreatedPayload'
+
+    EstimateApproved:
+      name: estimateApproved
+      title: Estimate Approved Event
+      summary: Published when an estimate is approved
+      payload:
+        $ref: '#/components/schemas/EstimateApprovedPayload'
+
+    EstimateRejected:
+      name: estimateRejected
+      title: Estimate Rejected Event
+      summary: Published when an estimate is rejected
+      payload:
+        $ref: '#/components/schemas/EstimateRejectedPayload'
+
+  schemas:
+    EstimateCreatedPayload:
+      type: object
+      required:
+        - estimateId
+        - projectId
+        - orgId
+        - totals
+      properties:
+        estimateId:
+          type: string
+          format: uuid
+          description: Unique identifier for the estimate
+        projectId:
+          type: string
+          format: uuid
+          description: Identifier of the project this estimate belongs to
+        orgId:
+          type: string
+          format: uuid
+          description: Identifier of the organization
+        totals:
+          $ref: '#/components/schemas/EstimateTotals'
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the estimate was created
+        createdBy:
+          type: string
+          format: uuid
+          description: User ID who created the estimate
+
+    EstimateApprovedPayload:
+      type: object
+      required:
+        - estimateId
+        - userId
+        - timestamp
+      properties:
+        estimateId:
+          type: string
+          format: uuid
+          description: Unique identifier for the estimate
+        userId:
+          type: string
+          format: uuid
+          description: User ID who approved the estimate
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the estimate was approved
+        comment:
+          type: string
+          description: Optional comment for approval
+        approvedAmount:
+          type: number
+          format: float
+          description: Final approved amount
+
+    EstimateRejectedPayload:
+      type: object
+      required:
+        - estimateId
+        - userId
+        - timestamp
+      properties:
+        estimateId:
+          type: string
+          format: uuid
+          description: Unique identifier for the estimate
+        userId:
+          type: string
+          format: uuid
+          description: User ID who rejected the estimate
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the estimate was rejected
+        comment:
+          type: string
+          description: Reason for rejection
+        issues:
+          type: array
+          items:
+            type: string
+          description: List of specific issues identified
+
+    EstimateTotals:
+      type: object
+      required:
+        - subtotal
+        - tax
+        - total
+      properties:
+        subtotal:
+          type: number
+          format: float
+          description: Subtotal amount before tax
+        tax:
+          type: number
+          format: float
+          description: Tax amount
+        total:
+          type: number
+          format: float
+          description: Total amount including tax
+        currency:
+          type: string
+          default: USD
+          description: Currency code (ISO 4217)
+        laborCost:
+          type: number
+          format: float
+          description: Labor cost component
+        materialCost:
+          type: number
+          format: float
+          description: Material cost component
+        equipmentCost:
+          type: number
+          format: float
+          description: Equipment cost component

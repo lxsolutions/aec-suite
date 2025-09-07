@@ -73,6 +73,11 @@ jobs:
     - name: Lint
       run: pnpm lint
 
+    - name: Validate AsyncAPI Schema
+      run: |
+        npm install -g @asyncapi/cli
+        asyncapi validate schemas/asyncapi/estimate-events.yaml
+
     - name: Test
       run: pnpm test
 

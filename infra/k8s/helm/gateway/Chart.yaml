@@ -1,0 +1,7 @@
+
+apiVersion: v2
+name: gateway
+description: A Helm chart for AEC Suite Gateway service
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

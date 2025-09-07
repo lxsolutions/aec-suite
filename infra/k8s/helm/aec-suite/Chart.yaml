@@ -1,0 +1,27 @@
+apiVersion: v2
+name: aec-suite
+description: A Helm chart for AEC Suite umbrella deployment
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+# dependencies:
+#   - name: gateway
+#     version: "0.1.0"
+#     repository: "file://../gateway"
+#     condition: gateway.enabled
+#   - name: orchestrator
+#     version: "0.1.0"
+#     repository: "file://../orchestrator"
+#     condition: orchestrator.enabled
+#   - name: erp-bridge
+#     version: "0.1.0"
+#     repository: "file://../erp-bridge"
+#     condition: erp-bridge.enabled
+#   - name: rover
+#     version: "0.1.0"
+#     repository: "file://../rover"
+#     condition: rover.enabled
+#   - name: buildforge
+#     version: "0.1.0"
+#     repository: "file://../buildforge"
+#     condition: buildforge.enabled

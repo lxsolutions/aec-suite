@@ -1,0 +1,9 @@
+
+
+apiVersion: v2
+name: orchestrator
+description: A Helm chart for AEC Suite Orchestrator service
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+

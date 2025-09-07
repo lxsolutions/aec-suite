@@ -1,82 +1,162 @@
-
-
+#!/usr/bin/env python3
 """
-Seed script for demo data
+Seed script for AEC Suite database.
+Creates initial organization, admin user, project, and estimate.
 """
 
 import asyncio
 import uuid
-from datetime import datetime, timedelta
-from sqlalchemy import text
-from services.gateway.db import engine
+from datetime import datetime
+from typing import Optional
 
-async def seed_demo_data():
-    async with engine.connect() as conn:
-        # Create demo project
-        project_id = str(uuid.uuid4())
-        await conn.execute(text("""
-            INSERT INTO projects (id, name, description, client_id, start_date, end_date, budget, status, org_id)
-            VALUES (:id, :name, :description, :client_id, :start_date, :end_date, :budget, :status, :org_id)
-        """), {
-            "id": project_id,
-            "name": "Demo Office Building",
-            "description": "A 5-story office building with parking garage",
-            "client_id": "client-001",
-            "start_date": datetime.now(),
-            "end_date": datetime.now() + timedelta(days=365),
-            "budget": 2500000.0,
-            "status": "active",
-            "org_id": "demo-org"
-        })
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
-        # Create demo RFP
-        rfp_id = str(uuid.uuid4())
-        await conn.execute(text("""
-            INSERT INTO rfp_artifacts (id, project_id, filename, original_filename, file_size, mime_type, status, org_id)
-            VALUES (:id, :project_id, :filename, :original_filename, :file_size, :mime_type, :status, :org_id)
-        """), {
-            "id": rfp_id,
-            "project_id": project_id,
-            "filename": "rfp_demo_office.pdf",
-            "original_filename": "Office_Building_RFP.pdf",
-            "file_size": 1024000,
-            "mime_type": "application/pdf",
-            "status": "parsed",
-            "org_id": "demo-org"
-        })
+# Import models
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'services', 'aec-orchestrator', 'backend', 'src'))
 
-        # Create demo estimate
-        estimate_id = str(uuid.uuid4())
-        estimate_items = [
-            {"code": "SITE01", "description": "Site Preparation", "quantity": 1, "unit": "ls", "unit_cost": 50000, "total_cost": 50000},
-            {"code": "FND01", "description": "Foundation Work", "quantity": 1, "unit": "ls", "unit_cost": 150000, "total_cost": 150000},
-            {"code": "STR01", "description": "Structural Steel", "quantity": 200, "unit": "ton", "unit_cost": 2500, "total_cost": 500000},
-            {"code": "EXT01", "description": "Exterior Finishes", "quantity": 1, "unit": "ls", "unit_cost": 300000, "total_cost": 300000},
-            {"code": "INT01", "description": "Interior Finishes", "quantity": 1, "unit": "ls", "unit_cost": 400000, "total_cost": 400000},
-            {"code": "MEP01", "description": "MEP Systems", "quantity": 1, "unit": "ls", "unit_cost": 600000, "total_cost": 600000}
-        ]
+from backend.models import Base, Organization, User, Project, Estimate, UserRole
 
-        await conn.execute(text("""
-            INSERT INTO estimates (id, project_id, rfp_id, version, status, total_amount, items, notes, org_id)
-            VALUES (:id, :project_id, :rfp_id, :version, :status, :total_amount, :items, :notes, :org_id)
-        """), {
-            "id": estimate_id,
-            "project_id": project_id,
-            "rfp_id": rfp_id,
-            "version": 1,
-            "status": "ready",
-            "total_amount": 2000000.0,
-            "items": estimate_items,
-            "notes": "Initial estimate based on RFP requirements",
-            "org_id": "demo-org"
-        })
+# Database configuration
+DATABASE_URL = "postgresql+asyncpg://aec:aec123@localhost:5432/aec_suite"
+SYNC_DATABASE_URL = "postgresql://aec:aec123@localhost:5432/aec_suite"
 
-        await conn.commit()
-        print(f"Demo data seeded successfully!")
-        print(f"Project ID: {project_id}")
-        print(f"RFP ID: {rfp_id}")
-        print(f"Estimate ID: {estimate_id}")
+async def create_database_if_not_exists():
+    """Create database if it doesn't exist"""
+    # Connect to postgres database to create our database
+    engine = create_engine(SYNC_DATABASE_URL.replace('aec_suite', 'postgres'))
+    conn = engine.connect()
+    conn.execute(text("COMMIT"))  # End any existing transaction
+    
+    # Check if database exists
+    result = conn.execute(
+        text("SELECT 1 FROM pg_database WHERE datname = 'aec_suite'")
+    )
+    exists = result.scalar() is not None
+    
+    if not exists:
+        print("Creating database aec_suite...")
+        conn.execute(text("CREATE DATABASE aec_suite"))
+        print("Database created successfully")
+    
+    conn.close()
+    engine.dispose()
+
+async def seed_database():
+    """Seed the database with initial data"""
+    print("Starting database seeding...")
+    
+    # Create database if it doesn't exist
+    await create_database_if_not_exists()
+    
+    # Create async engine and session
+    engine = create_async_engine(DATABASE_URL, echo=True)
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    
+    async with engine.begin() as conn:
+        # Create tables if they don't exist
+        await conn.run_sync(Base.metadata.create_all)
+    
+    async with async_session() as session:
+        try:
+            # Check if organization already exists
+            existing_org = await session.execute(
+                text("SELECT id FROM organizations WHERE slug = 'demo-org'")
+            )
+            org_exists = existing_org.scalar() is not None
+            
+            if org_exists:
+                print("Demo organization already exists. Skipping seeding.")
+                return
+            
+            # Create organization
+            org = Organization(
+                id=uuid.uuid4(),
+                name="Demo Organization",
+                slug="demo-org",
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            session.add(org)
+            await session.flush()
+            
+            # Create admin user
+            admin_user = User(
+                id=uuid.uuid4(),
+                email="admin@demo.org",
+                hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",  # "secret"
+                is_active=True,
+                is_superuser=True,
+                is_verified=True,
+                role=UserRole.ADMIN,
+                org_id=org.id,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            session.add(admin_user)
+            await session.flush()
+            
+            # Create project
+            project = Project(
+                id=uuid.uuid4(),
+                name="Demo Construction Project",
+                org_id=org.id,
+                data={
+                    "type": "commercial",
+                    "location": "123 Main St, Anytown, USA",
+                    "square_feet": 10000,
+                    "floors": 2
+                },
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            session.add(project)
+            await session.flush()
+            
+            # Create estimate
+            estimate = Estimate(
+                id=uuid.uuid4(),
+                project_id=project.id,
+                org_id=org.id,
+                name="Initial Construction Estimate",
+                description="Comprehensive estimate for demo construction project including materials, labor, and equipment",
+                material_cost=250000.0,
+                labor_cost=150000.0,
+                equipment_cost=50000.0,
+                subcontractor_cost=75000.0,
+                overhead_cost=30000.0,
+                profit_margin=0.15,
+                total_cost=555000.0,
+                status="draft",
+                version=1,
+                created_by=admin_user.id,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            session.add(estimate)
+            
+            await session.commit()
+            print("Database seeded successfully!")
+            print(f"Organization: {org.name} ({org.slug})")
+            print(f"Admin User: {admin_user.email}")
+            print(f"Project: {project.name}")
+            print(f"Estimate: {estimate.name} - ${estimate.total_cost:,.2f}")
+            
+        except Exception as e:
+            await session.rollback()
+            print(f"Error seeding database: {e}")
+            raise
+
+async def main():
+    """Main function"""
+    try:
+        await seed_database()
+    except Exception as e:
+        print(f"Failed to seed database: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(seed_demo_data())
-
+    asyncio.run(main())

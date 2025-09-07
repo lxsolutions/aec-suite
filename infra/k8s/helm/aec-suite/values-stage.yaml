@@ -1,0 +1,72 @@
+
+
+# Staging environment values for AEC Suite
+global:
+  environment: staging
+  imagePullPolicy: IfNotPresent
+
+gateway:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+orchestrator:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+erp-bridge:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+rover:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+buildforge:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Staging infrastructure
+postgres:
+  persistence:
+    size: 20Gi
+
+redis:
+  persistence:
+    size: 10Gi
+
+nats:
+  jetstream:
+    fileStorage:
+      size: 10Gi
+
+

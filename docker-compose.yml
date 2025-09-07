@@ -25,6 +25,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aec -d aec_suite"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -32,12 +37,24 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   nats:
     image: nats:2-alpine
     ports:
       - "4222:4222"
       - "8222:8222"
+    command: -js
+    healthcheck:
+      test: ["CMD", "nats", "server", "check", "--healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   jaeger:
     image: jaegertracing/all-in-one:1.48
@@ -51,5 +68,9 @@ services:
 
 volumes:
   postgres_data:
+    name: aec-suite-postgres-data
   redis_data:
+    name: aec-suite-redis-data
+  nats_jetstream:
+    name: aec-suite-nats-jetstream
 

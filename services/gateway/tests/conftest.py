@@ -129,7 +129,34 @@ def mock_external_services():
                 # Other endpoints - return error
                 raise Exception(f"URL not mocked: {url}")
         
-        mock_instance.post.return_value = mock_post_response
+        def mock_post_method(url, **kwargs):
+            if "/projects" in url:
+                # Project endpoints - use the existing mock response
+                return mock_post_response
+            elif "/rfps/ingest" in url:
+                # RFP ingest endpoint - return RFP response
+                mock_response = Mock()
+                mock_response.status_code = 200
+                mock_response.json.return_value = {
+                    "id": "rfp-test-789",
+                    "project_id": "test-project-123",
+                    "title": "Test RFP",
+                    "description": "Test RFP description",
+                    "due_date": "2024-12-31",
+                    "budget_range_min": 50000.0,
+                    "budget_range_max": 100000.0,
+                    "requirements": ["Test requirement 1", "Test requirement 2"],
+                    "status": "parsed",
+                    "created_at": "2024-01-01T00:00:00Z",
+                    "updated_at": "2024-01-01T00:00:00Z"
+                }
+                mock_response.raise_for_status.return_value = None
+                return mock_response
+            else:
+                # Other endpoints - return error
+                raise Exception(f"URL not mocked: {url}")
+        
+        mock_instance.post.side_effect = mock_post_method
         mock_instance.get.side_effect = mock_get_method
         mock_instance.put.return_value = mock_put_response
         mock_instance.delete.return_value = mock_delete_response

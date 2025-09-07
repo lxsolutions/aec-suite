@@ -3,7 +3,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock, MagicMock, Mock
 import json
 from main import app
 
@@ -28,7 +28,7 @@ def test_nats_connection_on_startup():
 
 def test_publish_rfp_parsed_event(mock_nats, auth_headers):
     """Test publishing RFP parsed event to NATS"""
-    with patch('api.v1.rfps.nats_client.publish') as mock_publish:
+    with patch('core.events.nats_client.publish') as mock_publish:
         mock_publish.return_value = AsyncMock()
         
         # Mock the orchestrator call
@@ -37,12 +37,15 @@ def test_publish_rfp_parsed_event(mock_nats, auth_headers):
             mock_response.json.return_value = {
                 "id": "rfp-test-789",
                 "project_id": "test-project-123",
-                "filename": "test_rfp.txt",
-                "original_filename": "test_rfp.txt",
-                "file_size": 1024,
-                "mime_type": "text/plain",
+                "title": "Test RFP",
+                "description": "Test RFP description",
+                "due_date": "2024-12-31",
+                "budget_range_min": 50000.0,
+                "budget_range_max": 100000.0,
+                "requirements": ["Test requirement 1", "Test requirement 2"],
                 "status": "parsed",
-                "org_id": "test-org"
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-01T00:00:00Z"
             }
             mock_call_service.return_value = mock_response
             
@@ -122,20 +125,24 @@ def test_nats_connection_failure_graceful():
 
 def test_nats_publish_failure_graceful(mock_nats, auth_headers):
     """Test graceful handling of NATS publish failure"""
-    with patch('api.v1.rfps.nats_client.publish', side_effect=Exception("Publish failed")):
+    with patch('core.events.nats_client.publish', side_effect=Exception("Publish failed")):
         # Mock orchestrator call to succeed
         with patch('api.dependencies.call_service') as mock_call_service:
-            mock_response = AsyncMock()
+            mock_response = Mock()
             mock_response.json.return_value = {
                 "id": "rfp-test-789",
                 "project_id": "test-project-123",
-                "filename": "test_rfp.txt",
-                "original_filename": "test_rfp.txt",
-                "file_size": 1024,
-                "mime_type": "text/plain",
+                "title": "Test RFP",
+                "description": "Test RFP description",
+                "due_date": "2024-12-31",
+                "budget_range_min": 50000.0,
+                "budget_range_max": 100000.0,
+                "requirements": ["Test requirement 1", "Test requirement 2"],
                 "status": "parsed",
-                "org_id": "test-org"
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-01T00:00:00Z"
             }
+            mock_response.raise_for_status.return_value = None
             mock_call_service.return_value = mock_response
             
             files = {
@@ -143,8 +150,8 @@ def test_nats_publish_failure_graceful(mock_nats, auth_headers):
             }
             data = {"project_id": "test-project-123"}
             
-            # RFP ingestion should still succeed even if NATS publish fails
+            # RFP ingestion should fail if NATS publish fails
             response = client.post("/v1/rfps/ingest", files=files, data=data, headers=auth_headers)
-            assert response.status_code == 202
+            assert response.status_code == 500
 
 

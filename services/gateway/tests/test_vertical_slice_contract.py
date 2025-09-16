@@ -37,7 +37,7 @@ def mock_redis():
 client = TestClient(app, headers={'host': 'localhost'})
 
 # Mock JWT token for authenticated tests
-MOCK_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1ODAyMzA3OX0.srJSRplE0ATWDHUGekB4dzelWOBrTtZgwiTVRxsBud8"
+MOCK_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJvcmdfaWQiOiJ0ZXN0LW9yZyIsImV4cCI6MTc1ODAzNDE2OC42MjY3NDd9.YU24QS1Prfbyoo-bG0jwIa1ycxGxrpKD5KAsdCkArbA"
 
 # Common headers for all requests
 AUTH_HEADERS = {
@@ -348,18 +348,18 @@ class TestVerticalSliceContract:
                 }
                 mock_call_service.return_value = mock_response
                 mock_publish.return_value = None
-            
-            rfp_response = client.post(
-                "/v1/rfps/ingest",
-                headers=AUTH_HEADERS,
-                files={
-                    "file": ("e2e_rfp.txt", file_content, "text/plain")
-                },
-                data={"project_id": project_id}
-            )
-            
-            assert rfp_response.status_code == 200
-            assert rfp_response.json()["project_id"] == project_id
+                
+                rfp_response = client.post(
+                    "/v1/rfps/ingest",
+                    headers={"Authorization": AUTH_HEADERS["Authorization"]},
+                    files={
+                        "file": ("e2e_rfp.txt", file_content, "text/plain")
+                    },
+                    data={"project_id": project_id}
+                )
+                
+                assert rfp_response.status_code == 200
+                assert rfp_response.json()["project_id"] == project_id
         
         # 3. Create estimate
         estimate_data = {
@@ -421,13 +421,14 @@ class TestErrorScenarios:
         
         response = client.get("/v1/projects", headers=headers)
         assert response.status_code == 401
-        assert "token" in response.json()["message"].lower()
+        assert "credentials" in response.json()["detail"].lower()
     
     def test_rate_limiting(self):
         """Test rate limiting behavior"""
         project_data = {
             "name": "Rate Limit Test",
             "client_id": "test-client",
+            "start_date": "2024-01-01",
             "budget": 100000
         }
         
@@ -439,13 +440,22 @@ class TestErrorScenarios:
         # Make multiple requests quickly
         responses = []
         for i in range(10):
-            with patch('httpx.AsyncClient.post') as mock_post:
-                mock_post.return_value = AsyncMock()
-                mock_post.return_value.status_code = 201
-                mock_post.return_value.json.return_value = {
+            with patch('api.v1.projects.call_service') as mock_call_service:
+                mock_response = MagicMock()
+                mock_response.status_code = 201
+                mock_response.json.return_value = {
                     "id": f"test-project-{i}",
-                    "name": "Test Project"
+                    "name": "Test Project",
+                    "description": "Test project for rate limiting",
+                    "client_id": "test-client",
+                    "start_date": "2024-01-01",
+                    "end_date": None,
+                    "budget": 100000,
+                    "status": "active",
+                    "created_at": "2024-01-01T00:00:00Z",
+                    "updated_at": "2024-01-01T00:00:00Z"
                 }
+                mock_call_service.return_value = mock_response
                 
                 response = client.post("/v1/projects", json=project_data, headers=headers)
                 responses.append(response.status_code)

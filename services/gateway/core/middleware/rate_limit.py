@@ -41,8 +41,8 @@ def create_rate_limit_middleware() -> Optional[Callable]:
         return None
     
     # Configure specific limits
-    limiter.limit(settings.RATE_LIMIT_UPLOADS)(key_func=lambda request: f"{get_remote_address(request)}:upload")
-    limiter.limit(settings.RATE_LIMIT_AUTHENTICATED)(key_func=lambda request: f"{get_remote_address(request)}:authenticated")
+    # Note: The key_func is set globally in the limiter initialization
+    # For specific limits, we need to use the decorator pattern on endpoints directly
     
     return SlowAPIMiddleware
 

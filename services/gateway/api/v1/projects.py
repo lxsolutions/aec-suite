@@ -58,7 +58,7 @@ async def list_projects(
 async def create_project(
     project: ProjectCreate,
     current_user: dict = Depends(get_current_user),
-    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
+    idempotency_key: Optional[str] = Depends(get_idempotency_key)
 ):
     """Create a new project"""
     try:
@@ -70,7 +70,7 @@ async def create_project(
             response = await call_service(
                 f"{settings.ORCHESTRATOR_URL}/projects",
                 method="post",
-                json=project.dict(),
+                json=project.model_dump(),
                 headers={
                     "X-Org-ID": current_user["org_id"],
                     "Idempotency-Key": idempotency_key

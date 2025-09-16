@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Header
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Header, Query
 from pydantic import BaseModel, Field
-from typing import Optional
-from ..dependencies import get_org_id
+from typing import Optional, List
+from ..dependencies import get_org_id, get_idempotency_key
 from libs.py.aec_shared.errors import InternalServerError, ConflictError
 from libs.py.aec_shared.otel import get_current_trace_id
 from core.idempotency import idempotency_manager, require_idempotency_key, handle_idempotency
@@ -20,11 +20,21 @@ class Estimate(BaseModel):
     items: list[EstimateItem] = Field(default_factory=list)
     currency: str = "USD"
 
+class EstimateResponse(BaseModel):
+    id: str
+    project_id: str
+    version: int
+    status: str
+    total_amount: float
+    items: list[EstimateItem]
+    created_at: str
+    updated_at: str
+
 @router.post("", response_model=Estimate)
 async def create_estimate(
     payload: Estimate, 
     org_id: str = Depends(get_org_id),
-    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
+    idempotency_key: Optional[str] = Depends(get_idempotency_key)
 ):
     """Create a new estimate"""
     try:
@@ -54,3 +64,40 @@ async def ingest_rfp(file: UploadFile = File(...), org_id: str = Depends(get_org
     except Exception as e:
         trace_id = get_current_trace_id()
         raise InternalServerError(f"Failed to ingest RFP: {str(e)}", trace_id)
+
+@router.get("", response_model=List[EstimateResponse])
+async def get_estimates(
+    project_id: Optional[str] = Query(None, description="Filter estimates by project ID"),
+    org_id: str = Depends(get_org_id)
+):
+    """Get estimates, optionally filtered by project ID"""
+    try:
+        # TODO: call rover/orchestrator to get actual estimates
+        # For now, return mock data for testing
+        if project_id:
+            return [
+                EstimateResponse(
+                    id="test-estimate-001",
+                    project_id=project_id,
+                    version=1,
+                    status="draft",
+                    total_amount=50000.0,
+                    items=[
+                        EstimateItem(
+                            code="DIV01",
+                            description="Excavation",
+                            uom="cy",
+                            qty=100.0,
+                            unit_cost=25.0
+                        )
+                    ],
+                    created_at="2024-01-01T00:00:00Z",
+                    updated_at="2024-01-01T00:00:00Z"
+                )
+            ]
+        else:
+            # Return empty list if no project_id provided
+            return []
+    except Exception as e:
+        trace_id = get_current_trace_id()
+        raise InternalServerError(f"Failed to retrieve estimates: {str(e)}", trace_id)

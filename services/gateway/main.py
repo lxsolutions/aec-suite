@@ -5,6 +5,10 @@ AEC Suite API Gateway - FastAPI implementation
 Main entry point for the gateway service
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../libs/py'))
+
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -27,7 +31,8 @@ from core.events import nats_client
 from core.middleware.rate_limit import (
     create_rate_limit_middleware, 
     rate_limit_exceeded_handler,
-    limiter
+    limiter,
+    RateLimitExceeded
 )
 from core.middleware.error_handler import create_error_handler_middleware
 

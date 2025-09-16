@@ -171,8 +171,8 @@ async def handle_idempotency(
     result = await operation(*args, **kwargs)
     
     # Store the successful response
-    if hasattr(result, 'dict') and callable(getattr(result, 'dict')):
-        response_data = result.dict()
+    if hasattr(result, 'model_dump') and callable(getattr(result, 'model_dump')):
+        response_data = result.model_dump()
     elif isinstance(result, dict):
         response_data = result
     else:

@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from pydantic import BaseModel
 from typing import List, Optional
 
-from ..dependencies import call_service
+from ..dependencies import call_service, get_idempotency_key
 from core.config import settings
 from core.security import get_current_user
 from core.events import nats_client
@@ -67,7 +67,7 @@ async def list_rfps(
 async def create_rfp(
     rfp: RFPCreate,
     current_user: dict = Depends(get_current_user),
-    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
+    idempotency_key: Optional[str] = Depends(get_idempotency_key)
 ):
     """Create a new RFP"""
     try:
@@ -79,7 +79,7 @@ async def create_rfp(
             response = await call_service(
                 f"{settings.BUILDFORGE_URL}/rfps",
                 method="post",
-                json=rfp.dict(),
+                json=rfp.model_dump(),
                 headers={
                     "X-Org-ID": current_user["org_id"],
                     "Idempotency-Key": idempotency_key

@@ -32,7 +32,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(
                 status_code=http_exc.status_code,
-                content=error_response.dict(exclude_none=True)
+                content=error_response.model_dump(exclude_none=True)
             )
             
         except Exception as exc:
@@ -49,7 +49,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=error_response.dict(exclude_none=True)
+                content=error_response.model_dump(exclude_none=True)
             )
 
 def create_error_handler_middleware():

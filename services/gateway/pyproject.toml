@@ -15,6 +15,7 @@ dependencies = [
     "python-multipart>=0.0.6",
     "httpx>=0.25.0",
     "pydantic>=2.4.0",
+    "pydantic-settings>=2.0.0",
     "opentelemetry-sdk>=1.19.0",
     "opentelemetry-exporter-jaeger>=1.19.0",
     "opentelemetry-instrumentation-fastapi>=0.11b0",

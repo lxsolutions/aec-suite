@@ -4,8 +4,8 @@ API dependencies and utilities
 """
 
 import httpx
-from fastapi import HTTPException, status
-from typing import Dict, Any
+from fastapi import HTTPException, status, Header
+from typing import Dict, Any, Optional
 
 from core.config import settings
 from libs.py.aec_shared.errors import ServiceUnavailableError, create_http_exception
@@ -83,8 +83,6 @@ async def get_org_id() -> str:
     # TODO: Implement proper JWT auth extraction
     return "org-123"
 
-async def get_idempotency_key() -> Optional[str]:
+async def get_idempotency_key(idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")) -> Optional[str]:
     """Get idempotency key from header"""
-    # This will be implemented as a proper dependency
-    # For now, return None to indicate it's optional
-    return None
+    return idempotency_key
